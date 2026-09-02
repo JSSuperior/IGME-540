@@ -20,6 +20,13 @@
 // For the DirectX Math library
 using namespace DirectX;
 
+// Assignment Variables (not sure if putting them here is the best practice, its been a hot minute since I've done c++)
+XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);		// Color picker value
+bool showDemoWindow = false;				// Demo window toggle
+bool isChecked = false;						// Boolean for checkbox widget
+float dragFloatValue = 0.0;					// Drag float widget value
+float floatInputValue = 0.0;				// Float input widget value
+
 // --------------------------------------------------------
 // The constructor is called after the window and graphics API
 // are initialized but before the game loop begins
@@ -286,7 +293,34 @@ void Game::ImGuiUpdate(float deltaTime)
 	Input::SetMouseCapture(io.WantCaptureMouse);
 
 	// Show the demo window
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
+
+	// Create custom ImGui window
+	ImGui::Begin("My Cool Window");
+
+	// Framerate & Window res
+	ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
+	ImGui::Text("Window Resolution: %dx%d", Window::Width(), Window::Height());
+
+	// RGBA color picker
+	ImGui::ColorEdit4("RGBA color editor", &color.x);
+
+	// Toggle demo window button
+	if (ImGui::Button("Show Demo Window")) {
+		showDemoWindow = !showDemoWindow;
+	}
+
+	// Custom widgets
+	ImGui::Checkbox("My cool checkbox", &isChecked);
+	ImGui::DragFloat("My cool dragfloat", &dragFloatValue);
+	ImGui::InputFloat("My cool float input", &floatInputValue);
+
+	ImGui::End();
+
+	// Show demo window if toggled
+	if (showDemoWindow == true) {
+		ImGui::ShowDemoWindow();
+	}
 }
 
 // --------------------------------------------------------
