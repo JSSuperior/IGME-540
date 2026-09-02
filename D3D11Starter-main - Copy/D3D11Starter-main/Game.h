@@ -14,6 +14,7 @@ public:
 
 	// Primary functions
 	void Update(float deltaTime, float totalTime);
+	void ImGuiUpdate(float deltaTime);
 	void Draw(float deltaTime, float totalTime);
 	void OnResize();
 
