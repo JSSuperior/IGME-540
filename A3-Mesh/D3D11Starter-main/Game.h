@@ -2,6 +2,9 @@
 
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <vector>
+#include <memory>
+#include "Mesh.h"
 
 class Game
 {
@@ -36,5 +39,15 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
+
+	// Assignment Variables (not sure if putting them here is the best practice, its been a hot minute since I've done c++)
+	//XMFLOAT4 color(0.0f, 0.0f, 0.0f, 0.0f);		// Color picker value
+	bool showDemoWindow = false;				// Demo window toggle
+	bool isChecked = false;						// Boolean for checkbox widget
+	float dragFloatValue = 0.0;					// Drag float widget value
+	float floatInputValue = 0.0;				// Float input widget value
+
+	// Mesh storage vector
+	std::vector<std::shared_ptr<Mesh>> meshes;
 };
 

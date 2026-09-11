@@ -4,6 +4,7 @@
 #include <wrl/client.h>
 #include <memory>
 #include <vector>
+#include <string>
 
 #include "Vertex.h"
 #include "Graphics.h"
@@ -11,18 +12,17 @@
 class Mesh {
 public:
 	// Constructor/Destructor
-	// might need to wrap vector in smart pointer?
-	// could also do it without vectors
-	//Mesh(std::vector<Vertex> &verticices, std::vector<int> &indicies);
-	Mesh(Vertex verticies[], const unsigned int vertexSize, int indicies[], const unsigned int indexSize);
+	Mesh(std::string name, Vertex vertices[], int vertexSize, int indices[], int indexSize);
 	~Mesh(); // will be empty
 
-	// Methods
-	// Might need to adjust the reference?
+	// Getters
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer();
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer();
 	int GetVertexCount();
 	int GetIndexCount();
+	std::string GetMeshName();
+
+	// Methods
 	void Draw();
 
 private:
@@ -33,4 +33,7 @@ private:
 	// Counts
 	unsigned int meshIndexCount;
 	unsigned int meshVertexCount;
+
+	// Mesh name
+	std::string meshName;
 };
