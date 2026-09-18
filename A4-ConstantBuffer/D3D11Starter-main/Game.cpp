@@ -270,7 +270,7 @@ void Game::ImGuiUpdate(float deltaTime)
 	// Create custom ImGui window
 	ImGui::Begin("My Cool Window");
 
-	// Leftover info from A2
+	// Assignment 2 UI components
 	if(ImGui::CollapsingHeader("Window Info/Misc")) {
 		// Framerate & Window res
 		ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
@@ -291,7 +291,7 @@ void Game::ImGuiUpdate(float deltaTime)
 
 	}
 
-	// Assignment 3 ImGui
+	// Assignment 3 UI components
 	if (ImGui::CollapsingHeader("Mesh Info")) {
 		for (std::shared_ptr<Mesh> mesh : meshes) { 
 			// Had some help from here converting strings to char*
@@ -300,6 +300,11 @@ void Game::ImGuiUpdate(float deltaTime)
 			ImGui::BulletText("Vertices: %i", mesh->GetVertexCount());
 			ImGui::BulletText("Indices: %i", mesh->GetIndexCount());
 		}
+	}
+
+	// Assignment 4 UI components
+	if (ImGui::CollapsingHeader("Mesh Values")) {
+		ImGui::DragFloat3("Offset", offset);
 	}
 	
 
@@ -328,8 +333,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Creating vertex shader data
 	VertexShaderData vsData {};
-	vsData.colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
-	vsData.offset = DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f);
+	vsData.colorTint = color;
+	vsData.offset = offset;
 
 	// mapping/passing info to buffer
 	D3D11_MAPPED_SUBRESOURCE map{};

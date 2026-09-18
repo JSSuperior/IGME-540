@@ -50,6 +50,10 @@ private:
 	float dragFloatValue = 0.0;					// Drag float widget value
 	float floatInputValue = 0.0;				// Float input widget value
 
+	// Color and Vector
+	//DirectX::XMFLOAT4 color = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	//DirectX::XMFLOAT3 offset = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+
 	// Mesh storage vector
 	std::vector<std::shared_ptr<Mesh>> meshes;
 };
