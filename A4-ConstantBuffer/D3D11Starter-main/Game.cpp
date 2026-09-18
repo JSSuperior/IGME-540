@@ -5,6 +5,7 @@
 #include "PathHelpers.h"
 #include "Window.h"
 #include "Mesh.h"
+#include "BufferStructs.h"
 
 #include <DirectXMath.h>
 #include <vector>
@@ -67,6 +68,25 @@ Game::Game()
 		Graphics::Context->VSSetShader(vertexShader.Get(), 0, 0);
 		Graphics::Context->PSSetShader(pixelShader.Get(), 0, 0);
 	}
+
+	// Creating buffer size
+	int size = sizeof(VertexShaderData);
+	size = (size + 15) / 16 * 16;
+
+	// Defining buffer settings
+	D3D11_BUFFER_DESC cbDesc{};
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.ByteWidth = size;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.MiscFlags = 0;
+	cbDesc.StructureByteStride = 0;
+
+	// Actually creating buffer
+	Graphics::Device->CreateBuffer(&cbDesc, 0, constantBuffer.GetAddressOf());
+
+	// Binding constant buffer to pipeline stage
+	Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
 }
 
 
@@ -305,6 +325,17 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	color);
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
+
+	// Creating vertex shader data
+	VertexShaderData vsData {};
+	vsData.colorTint = DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
+	vsData.offset = DirectX::XMFLOAT3(0.25f, 0.0f, 0.0f);
+
+	// mapping/passing info to buffer
+	D3D11_MAPPED_SUBRESOURCE map{};
+	Graphics::Context->Map(constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	memcpy(map.pData, &vsData, sizeof(vsData));
+	Graphics::Context->Unmap(constantBuffer.Get(), 0);
 
 	for (std::shared_ptr<Mesh> mesh : meshes) {
 		mesh->Draw();
