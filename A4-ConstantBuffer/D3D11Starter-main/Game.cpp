@@ -304,7 +304,8 @@ void Game::ImGuiUpdate(float deltaTime)
 
 	// Assignment 4 UI components
 	if (ImGui::CollapsingHeader("Mesh Values")) {
-		ImGui::DragFloat3("Offset", offset);
+		ImGui::DragFloat3("Offset", offset, 0.1f);
+		ImGui::DragFloat4("Color Tint", color, 0.2f);
 	}
 	
 
@@ -333,8 +334,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Creating vertex shader data
 	VertexShaderData vsData {};
-	vsData.colorTint = color;
-	vsData.offset = offset;
+	vsData.colorTint = DirectX::XMFLOAT4(color);
+	vsData.offset = DirectX::XMFLOAT3(offset);
 
 	// mapping/passing info to buffer
 	D3D11_MAPPED_SUBRESOURCE map{};

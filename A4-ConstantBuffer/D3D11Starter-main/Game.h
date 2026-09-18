@@ -51,8 +51,8 @@ private:
 	float floatInputValue = 0.0;				// Float input widget value
 
 	// Color and Vector
-	//DirectX::XMFLOAT4 color = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-	//DirectX::XMFLOAT3 offset = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	float offset[3] = { 0.0f, 0.0f, 0.0f };
 
 	// Mesh storage vector
 	std::vector<std::shared_ptr<Mesh>> meshes;
