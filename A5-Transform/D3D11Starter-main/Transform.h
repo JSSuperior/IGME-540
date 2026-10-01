@@ -5,6 +5,7 @@
 class Transform
 {
 public:
+	// Constructor/destructor
 	Transform();
 	~Transform();
 

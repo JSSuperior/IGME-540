@@ -1,5 +1,6 @@
 #include "Transform.h"
 
+// Constructor
 Transform::Transform()
 {
 	// Initializing transformation data
@@ -12,6 +13,7 @@ Transform::Transform()
 	DirectX::XMStoreFloat4x4(&worldInverseTransposeMatrix, DirectX::XMMatrixIdentity());
 }
 
+// Destructor
 Transform::~Transform() 
 {
 

@@ -7,6 +7,7 @@
 #include "Vertex.h"
 #include "Graphics.h"
 #include "Mesh.h"
+#include "BufferStructs.h"
 
 /// <summary>
 /// Constructor for creating new meshes (also initializes/sets up buffers)

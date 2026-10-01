@@ -221,6 +221,13 @@ void Game::CreateGeometry()
 	meshes.push_back(std::make_shared<Mesh>("Triangle", meshOneVertices, 3, meshOneIndices, 3));
 	meshes.push_back(std::make_shared<Mesh>("Square", meshTwoVertices, 4, meshTwoIndices, 6));
 	meshes.push_back(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9));
+
+	// adding game entities
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9)));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9)));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9)));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Square", meshTwoVertices, 4, meshTwoIndices, 6)));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Triangle", meshOneVertices, 3, meshOneIndices, 3)));
 }
 
 
@@ -240,6 +247,10 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 	Game::ImGuiUpdate(deltaTime);
+
+	gameEntities[0]->GetTransform()->SetPosition(sinf(totalTime), 0, 0);
+	gameEntities[1]->GetTransform()->SetRotation(0, 0, totalTime);
+	gameEntities[2]->GetTransform()->SetScale(sinf(totalTime),sinf(totalTime),0);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -299,13 +310,42 @@ void Game::ImGuiUpdate(float deltaTime)
 			ImGui::Text(mesh->GetMeshName().c_str());
 			ImGui::BulletText("Vertices: %i", mesh->GetVertexCount());
 			ImGui::BulletText("Indices: %i", mesh->GetIndexCount());
+			ImGui::BulletText("Triangles: %i", mesh->GetIndexCount() / 3);
 		}
 	}
 
 	// Assignment 4 UI components
 	if (ImGui::CollapsingHeader("Mesh Values")) {
-		ImGui::DragFloat3("Offset", offset, 0.1f);
-		ImGui::DragFloat4("Color Tint", color, 0.2f);
+		//ImGui::DragFloat3("Offset", offset, 0.1f);
+		ImGui::ColorEdit4("Color Tint", color, 0.2f);
+	}
+
+	// I feel like there has to be a better way to do this, but I can't think of one atm
+	// unsure if it warrant creating its own variables in header
+	if (ImGui::CollapsingHeader("Game Entities")) {
+		for (int i = 0; i < gameEntities.size(); i++) {
+			ImGui::Text("Game Entity: %i", i);
+			ImGui::PushID(i);
+
+			// Get game entity transform
+			std::shared_ptr<Transform> transform = gameEntities[i]->GetTransform();
+			
+			// Convert and store temporarily as arrays
+			float position[3] = { transform->GetPosition().x, transform->GetPosition().y, transform->GetPosition().z};
+			float rotation[3] = { transform->GetPitchYawRoll().x, transform->GetPitchYawRoll().y, transform->GetPitchYawRoll().z };
+			float scale[3] = { transform->GetScale().x, transform->GetScale().y, transform->GetScale().z};
+
+			// Sliders
+			ImGui::DragFloat3("Position", position, 0.1f);
+			ImGui::DragFloat3("Rotation (Radians)", rotation, 0.1f);
+			ImGui::DragFloat3("Scale", scale, 0.1f);
+
+			// Update transform values
+			transform->SetPosition(DirectX::XMFLOAT3(position));
+			transform->SetRotation(DirectX::XMFLOAT3(rotation));
+			transform->SetScale(DirectX::XMFLOAT3(scale));
+			ImGui::PopID();
+		}
 	}
 	
 
@@ -315,7 +355,7 @@ void Game::ImGuiUpdate(float deltaTime)
 	if (showDemoWindow == true) {
 		ImGui::ShowDemoWindow();
 	}
-}
+} 
 
 // --------------------------------------------------------
 // Clear the screen, redraw everything, present to the user
@@ -332,21 +372,24 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	// Creating vertex shader data
-	VertexShaderData vsData {};
-	vsData.colorTint = DirectX::XMFLOAT4(color);
-	vsData.offset = DirectX::XMFLOAT3(offset);
-
-	// mapping/passing info to buffer
-	D3D11_MAPPED_SUBRESOURCE map{};
-	Graphics::Context->Map(constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-	memcpy(map.pData, &vsData, sizeof(vsData));
-	Graphics::Context->Unmap(constantBuffer.Get(), 0);
-
-	for (std::shared_ptr<Mesh> mesh : meshes) {
-		mesh->Draw();
-	}
+	//for (std::shared_ptr<Mesh> mesh : meshes) {
+	//	mesh->Draw();
+	//}
 	//triangle->Draw();
+	for (std::shared_ptr<GameEntity> gameEntity : gameEntities) {
+		// Creating vertex shader data
+		VertexShaderData vsData{};
+		vsData.colorTint = DirectX::XMFLOAT4(color);
+		vsData.worldMatrix = gameEntity->GetTransform()->GetWorldMatrix();
+
+		// mapping/passing info to buffer
+		D3D11_MAPPED_SUBRESOURCE map{};
+		Graphics::Context->Map(constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		memcpy(map.pData, &vsData, sizeof(vsData));
+		Graphics::Context->Unmap(constantBuffer.Get(), 0);
+
+		gameEntity->Draw();
+	}
 
 	// DRAW ImGui UI
 	{
@@ -371,6 +414,3 @@ void Game::Draw(float deltaTime, float totalTime)
 			Graphics::DepthBufferDSV.Get());
 	}
 }
-
-
-
