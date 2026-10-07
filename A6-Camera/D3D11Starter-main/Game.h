@@ -61,6 +61,8 @@ private:
 	std::vector<std::shared_ptr<GameEntity>> gameEntities;
 
 	// Camera
-	std::shared_ptr<Camera> camera;
+	std::vector<std::shared_ptr<Camera>> cameras;
+	int activeCameraNum;
+	//std::shared_ptr<Camera> camera;
 };
 

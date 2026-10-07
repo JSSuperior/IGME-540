@@ -10,12 +10,14 @@ class Camera
 {
 public:
 	// Constructor/Destructor
-	Camera(float aspectRatio, DirectX::XMFLOAT3 initialPos); // keeping it simple for now
+	Camera(float aspectRatio, float fov, DirectX::XMFLOAT3 initialPos); // keeping it simple for now
 	~Camera();
 
 	// Getters
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjMatrix();
+	std::shared_ptr<Transform> GetTransform();
+	float GetFov();
 
 	// Methods
 	void UpdateProjectionMatrix(float aspectRatio);

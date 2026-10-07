@@ -1,11 +1,12 @@
 #include "Camera.h"
 
 // Constructor/Destructor
-Camera::Camera(float aspectRatio, DirectX::XMFLOAT3 initialPos)
+Camera::Camera(float aspectRatio, float fov, DirectX::XMFLOAT3 initialPos)
 {
     // Create transform and set position
     transform = std::make_shared<Transform>();
     transform->SetPosition(initialPos);
+    this->fov = fov;
 
     // Setup stuff
     UpdateProjectionMatrix(aspectRatio);
@@ -25,6 +26,16 @@ DirectX::XMFLOAT4X4 Camera::GetViewMatrix()
 DirectX::XMFLOAT4X4 Camera::GetProjMatrix()
 {
     return projMatrix;
+}
+
+std::shared_ptr<Transform> Camera::GetTransform()
+{
+    return transform;
+}
+
+float Camera::GetFov()
+{
+    return fov;
 }
 
 // Methods

@@ -88,7 +88,10 @@ Game::Game()
 	// Binding constant buffer to pipeline stage
 	Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
 
-	camera = std::make_shared<Camera>(Window::AspectRatio(), DirectX::XMFLOAT3(0,0,-1));
+	// Setup cameras
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.25, DirectX::XMFLOAT3(-0.5,0,-1)));
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.50, DirectX::XMFLOAT3(0.5, 0, -1)));
+	activeCameraNum = 0;
 }
 
 
@@ -239,8 +242,10 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::OnResize()
 {
-	if (camera) {
-		camera->UpdateProjectionMatrix(Window::AspectRatio());
+	for (std::shared_ptr<Camera> camera : cameras) {
+		if (camera) {
+			camera->UpdateProjectionMatrix(Window::AspectRatio());
+		}
 	}
 }
 
@@ -256,7 +261,7 @@ void Game::Update(float deltaTime, float totalTime)
 	gameEntities[1]->GetTransform()->SetRotation(0, 0, totalTime);
 	gameEntities[2]->GetTransform()->SetScale(sinf(totalTime),sinf(totalTime),0);
 
-	camera->Update(deltaTime);
+	cameras[activeCameraNum]->Update(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -353,6 +358,30 @@ void Game::ImGuiUpdate(float deltaTime)
 			ImGui::PopID();
 		}
 	}
+
+	if (ImGui::CollapsingHeader("Camera Stuff")) {
+		// Active Camera Info
+		ImGui::Text("Active Camera: %i", activeCameraNum);
+		XMFLOAT3 cameraPos = cameras[activeCameraNum]->GetTransform()->GetPosition();
+		ImGui::Text("Camera position: (x: %f, y: %f, z: %f)", cameraPos.x, cameraPos.y, cameraPos.z);
+		ImGui::Text("Camera fov: %f", cameras[activeCameraNum]->GetFov());
+
+		// Spacing
+		ImGui::Dummy(ImVec2(0.0f, 20.0f));
+
+		// Create list of selectable cameras
+		for (int i = 0; i < cameras.size(); i++) {
+			ImGui::PushID(i);
+
+			ImGui::Text("Camera %i", i);
+			ImGui::SameLine();
+			if (ImGui::Button("Set active camera")) {
+				activeCameraNum = i;
+			}
+
+			ImGui::PopID();
+		}
+	}
 	
 
 	ImGui::End();
@@ -387,8 +416,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		VertexShaderData vsData{};
 		vsData.colorTint = DirectX::XMFLOAT4(color);
 		vsData.worldMatrix = gameEntity->GetTransform()->GetWorldMatrix();
-		vsData.projMatrix = camera->GetProjMatrix();
-		vsData.viewMatrix = camera->GetViewMatrix();
+
+		// needs to be for active camera
+		vsData.projMatrix = cameras[activeCameraNum]->GetProjMatrix();
+		vsData.viewMatrix = cameras[activeCameraNum]->GetViewMatrix();
 
 		// mapping/passing info to buffer
 		D3D11_MAPPED_SUBRESOURCE map{};
