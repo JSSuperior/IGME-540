@@ -57,6 +57,27 @@ DirectX::XMFLOAT4X4 Transform::GetWorldInverseTransposeMatrix()
 	return worldInverseTransposeMatrix;
 }
 
+DirectX::XMFLOAT3 Transform::GetRight()
+{
+	DirectX::XMFLOAT3 right;
+	DirectX::XMStoreFloat3(&right, DirectX::XMVector3Rotate(DirectX::XMVectorSet(1, 0, 0, 0), DirectX::XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z)));
+	return right;
+}
+
+DirectX::XMFLOAT3 Transform::GetUp()
+{
+	DirectX::XMFLOAT3 up;
+	DirectX::XMStoreFloat3(&up, DirectX::XMVector3Rotate(DirectX::XMVectorSet(0, 1, 0, 0), DirectX::XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z)));
+	return up;
+}
+
+DirectX::XMFLOAT3 Transform::GetForward()
+{
+	DirectX::XMFLOAT3 forward;
+	DirectX::XMStoreFloat3(&forward, DirectX::XMVector3Rotate(DirectX::XMVectorSet(0, 0, 1, 0), DirectX::XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z)));
+	return forward;
+}
+
 // Setters
 void Transform::SetPosition(float x, float y, float z)
 {
@@ -97,6 +118,22 @@ void Transform::MoveAbsolute(float x, float y, float z)
 void Transform::MoveAbsolute(DirectX::XMFLOAT3 offset)
 {
 	DirectX::XMStoreFloat3(&position, DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&position), DirectX::XMLoadFloat3(&offset)));
+}
+
+void Transform::MoveRelative(float x, float y, float z)
+{
+	DirectX::XMVECTOR _offset = DirectX::XMVectorSet(x, y, z, 0);
+	DirectX::XMVECTOR desiredDirection = DirectX::XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+
+	DirectX::XMStoreFloat3(&position, DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&position), DirectX::XMVector3Rotate(_offset, desiredDirection)));
+}
+
+void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
+{
+	DirectX::XMVECTOR _offset = DirectX::XMLoadFloat3(&offset);
+	DirectX::XMVECTOR desiredDirection = DirectX::XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+
+	DirectX::XMStoreFloat3(&position, DirectX::XMVectorAdd(DirectX::XMLoadFloat3(&position), DirectX::XMVector3Rotate(_offset, desiredDirection)));
 }
 
 void Transform::Rotate(float pitch, float yaw, float roll)
