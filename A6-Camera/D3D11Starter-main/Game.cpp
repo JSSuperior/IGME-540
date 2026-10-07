@@ -87,6 +87,8 @@ Game::Game()
 
 	// Binding constant buffer to pipeline stage
 	Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
+
+	camera = std::make_shared<Camera>(Window::AspectRatio(), DirectX::XMFLOAT3(0,0,-1));
 }
 
 
@@ -237,7 +239,9 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::OnResize()
 {
-	
+	if (camera) {
+		camera->UpdateProjectionMatrix(Window::AspectRatio());
+	}
 }
 
 
@@ -251,6 +255,8 @@ void Game::Update(float deltaTime, float totalTime)
 	gameEntities[0]->GetTransform()->SetPosition(sinf(totalTime), 0, 0);
 	gameEntities[1]->GetTransform()->SetRotation(0, 0, totalTime);
 	gameEntities[2]->GetTransform()->SetScale(sinf(totalTime),sinf(totalTime),0);
+
+	camera->Update(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
@@ -381,6 +387,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		VertexShaderData vsData{};
 		vsData.colorTint = DirectX::XMFLOAT4(color);
 		vsData.worldMatrix = gameEntity->GetTransform()->GetWorldMatrix();
+		vsData.projMatrix = camera->GetProjMatrix();
+		vsData.viewMatrix = camera->GetViewMatrix();
 
 		// mapping/passing info to buffer
 		D3D11_MAPPED_SUBRESOURCE map{};

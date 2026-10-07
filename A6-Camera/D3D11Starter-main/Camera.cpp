@@ -67,6 +67,8 @@ void Camera::Update(float dt)
         float dx = Input::GetMouseXDelta() * mouseLookSpeed;
         float dy = Input::GetMouseYDelta() * mouseLookSpeed;
 
+        // add clamp somewhere here
+
         transform->Rotate(dy, dx, 0);
     }
 
