@@ -89,8 +89,8 @@ Game::Game()
 	Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
 
 	// Setup cameras
-	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.25, DirectX::XMFLOAT3(-0.5,0,-1)));
-	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.50, DirectX::XMFLOAT3(0.5, 0, -1)));
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.25f, DirectX::XMFLOAT3(-0.5,0,-1)));
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.50f, DirectX::XMFLOAT3(0.5, 0, -1)));
 	activeCameraNum = 0;
 }
 
@@ -328,7 +328,7 @@ void Game::ImGuiUpdate(float deltaTime)
 	// Assignment 4 UI components
 	if (ImGui::CollapsingHeader("Mesh Values")) {
 		//ImGui::DragFloat3("Offset", offset, 0.1f);
-		ImGui::ColorEdit4("Color Tint", color, 0.2f);
+		ImGui::ColorEdit4("Color Tint", color);
 	}
 
 	// I feel like there has to be a better way to do this, but I can't think of one atm
