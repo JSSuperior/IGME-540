@@ -152,14 +152,20 @@ void Game::CreateGeometry()
 		vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
 		inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
 
-	// Loading shaders
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> shader1 = LoadVertexShader(L"VertexShader.cso");
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> shader2 = LoadPixelShader(L"PixelShader.cso");
+	// Loading vertex shader
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader = LoadVertexShader(L"VertexShader.cso");
+
+	// Loading pixel shaders
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderDefault = LoadPixelShader(L"PixelShader.cso");
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderUV = LoadPixelShader(L"DebugUVsPS.cso");
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal = LoadPixelShader(L"DebugNormalsPS.cso");
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom = LoadPixelShader(L"CustomPS.cso");
 
 	// Creating materials
-	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), shader1, shader2);
-	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), shader1, shader2);
-	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), shader1, shader2);
+	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderUV);
+	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderNormal);
+	std::shared_ptr<Material> material4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCustom);
 
 	// Create meshes from obj files
 	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>("sphere", FixPath("../../Assets/Meshes/sphere.obj").c_str());
@@ -180,13 +186,14 @@ void Game::CreateGeometry()
 	meshes.push_back(torus);
 
 	// adding game entities
-	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(cube, material2));
-	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material3));
-	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad, material2));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material3));
-	gameEntities.push_back(std::make_shared<GameEntity>(torus, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material3));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, material3));
+	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material2));
+	gameEntities.push_back(std::make_shared<GameEntity>(helix, material2));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(torus, material4));
+	gameEntities.push_back(std::make_shared<GameEntity>(helix, material4));
 
 	// Spreading out game entities to see
 	gameEntities[0]->GetTransform()->MoveAbsolute(-9, 0, 0);
@@ -196,6 +203,7 @@ void Game::CreateGeometry()
 	gameEntities[4]->GetTransform()->MoveAbsolute(3, 0, 0);
 	gameEntities[5]->GetTransform()->MoveAbsolute(6, 0, 0);
 	gameEntities[6]->GetTransform()->MoveAbsolute(9, 0, 0);
+	gameEntities[7]->GetTransform()->MoveAbsolute(12, 0, 0);
 }
 
 
@@ -436,6 +444,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Creating pixel shader data
 		PixelShaderData psData{};
 		psData.colorTint = gameEntity->GetMaterial()->GetColorTint();
+		psData.totalTime = DirectX::XMFLOAT2(totalTime, 1);
 
 		// mapping/passing info to buffer
 		D3D11_MAPPED_SUBRESOURCE mapPS{};

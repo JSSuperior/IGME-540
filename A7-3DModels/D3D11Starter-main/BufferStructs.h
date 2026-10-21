@@ -12,4 +12,5 @@ struct VertexShaderData {
 
 struct PixelShaderData {
 	DirectX::XMFLOAT4 colorTint;
+	DirectX::XMFLOAT2 totalTime;
 };

@@ -1,6 +1,7 @@
 cbuffer DataFromCPU : register(b0)
 {
     float4 colorTint;
+    float2 totalTime;
 }
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -16,6 +17,8 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 screenPosition	: SV_POSITION;
+    float2 uv : TEXTCOORD;
+    float3 normal : NORMAL;
 	//float4 color			: COLOR;
 };
 
@@ -35,4 +38,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
 	return colorTint;
+    //return float4(input.uv, 0, 1);
+    //return float4(input.normal, 1);
+
 }
