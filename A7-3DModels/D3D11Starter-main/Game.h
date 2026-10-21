@@ -23,6 +23,10 @@ public:
 	void Draw(float deltaTime, float totalTime);
 	void OnResize();
 
+	// Vertex and pixel shaders helper functions
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> LoadVertexShader(const std::wstring filePath);
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const std::wstring filePath);
+
 private:
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders();
@@ -41,8 +45,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
 
 	// Shaders and shader-related constructs
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
+	//Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
+	//Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
 	// Assignment Variables (not sure if putting them here is the best practice, its been a hot minute since I've done c++)
