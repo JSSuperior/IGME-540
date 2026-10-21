@@ -60,24 +60,43 @@ Game::Game()
 		Graphics::Context->IASetInputLayout(inputLayout.Get());
 	}
 
-	// Creating buffer size
-	int size = sizeof(VertexShaderData);
-	size = (size + 15) / 16 * 16;
+	// Creating Vertex buffer size
+	int vbSize = sizeof(VertexShaderData);
+	vbSize = (vbSize + 15) / 16 * 16;
 
 	// Defining buffer settings
-	D3D11_BUFFER_DESC cbDesc{};
-	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-	cbDesc.ByteWidth = size;
-	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cbDesc.MiscFlags = 0;
-	cbDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC cvbDesc{};
+	cvbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cvbDesc.ByteWidth = vbSize;
+	cvbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cvbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cvbDesc.MiscFlags = 0;
+	cvbDesc.StructureByteStride = 0;
 
 	// Actually creating buffer
-	Graphics::Device->CreateBuffer(&cbDesc, 0, constantBuffer.GetAddressOf());
+	Graphics::Device->CreateBuffer(&cvbDesc, 0, constantBuffer.GetAddressOf());
 
 	// Binding constant buffer to pipeline stage
 	Graphics::Context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
+
+	// Creating Vertex buffer size
+	int psSize = sizeof(PixelShaderData);
+	psSize = (psSize + 15) / 16 * 16;
+
+	// Defining buffer settings
+	D3D11_BUFFER_DESC cpbDesc{};
+	cpbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cpbDesc.ByteWidth = psSize;
+	cpbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cpbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cpbDesc.MiscFlags = 0;
+	cpbDesc.StructureByteStride = 0;
+
+	// Actually creating buffer
+	Graphics::Device->CreateBuffer(&cpbDesc, 0, constantBuffer2.GetAddressOf());
+
+	// Binding constant buffer to pipeline stage
+	Graphics::Context->PSSetConstantBuffers(0, 1, constantBuffer2.GetAddressOf());
 
 	// Setup cameras
 	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.25f, DirectX::XMFLOAT3(-0.5,0,-1)));
@@ -401,7 +420,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// Creating vertex shader data
 		VertexShaderData vsData{};
-		vsData.colorTint = gameEntity->GetMaterial()->GetColorTint();
+		//vsData.colorTint = gameEntity->GetMaterial()->GetColorTint();
 		vsData.worldMatrix = gameEntity->GetTransform()->GetWorldMatrix();
 
 		// needs to be for active camera
@@ -409,10 +428,20 @@ void Game::Draw(float deltaTime, float totalTime)
 		vsData.viewMatrix = cameras[activeCameraNum]->GetViewMatrix();
 
 		// mapping/passing info to buffer
-		D3D11_MAPPED_SUBRESOURCE map{};
-		Graphics::Context->Map(constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, &vsData, sizeof(vsData));
+		D3D11_MAPPED_SUBRESOURCE mapVS{};
+		Graphics::Context->Map(constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapVS);
+		memcpy(mapVS.pData, &vsData, sizeof(vsData));
 		Graphics::Context->Unmap(constantBuffer.Get(), 0);
+
+		// Creating pixel shader data
+		PixelShaderData psData{};
+		psData.colorTint = gameEntity->GetMaterial()->GetColorTint();
+
+		// mapping/passing info to buffer
+		D3D11_MAPPED_SUBRESOURCE mapPS{};
+		Graphics::Context->Map(constantBuffer2.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapPS);
+		memcpy(mapPS.pData, &psData, sizeof(psData));
+		Graphics::Context->Unmap(constantBuffer2.Get(), 0);
 
 		gameEntity->Draw();
 	}
