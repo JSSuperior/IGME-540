@@ -151,13 +151,22 @@ void Game::CreateGeometry()
 	std::shared_ptr<Mesh> quad_double_sided = std::make_shared<Mesh>("double sided quad", FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str());
 	std::shared_ptr<Mesh> torus = std::make_shared<Mesh>("torus", FixPath("../../Assets/Meshes/torus.obj").c_str());
 
+	// Adding meshes to mesh vector
+	meshes.push_back(sphere);
+	meshes.push_back(cube);
+	meshes.push_back(cylinder);
+	meshes.push_back(helix);
+	meshes.push_back(quad);
+	meshes.push_back(quad_double_sided);
+	meshes.push_back(torus);
+
 	// adding game entities
 	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(cube, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, material2));
+	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material3));
 	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad, material2));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material3));
 	gameEntities.push_back(std::make_shared<GameEntity>(torus, material1));
 
 	// Spreading out game entities to see
