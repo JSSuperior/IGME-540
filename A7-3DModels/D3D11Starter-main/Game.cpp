@@ -108,22 +108,27 @@ void Game::CreateGeometry()
 	ID3DBlob* vertexShaderBlob;
 	D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
 
-	D3D11_INPUT_ELEMENT_DESC inputElements[2] = {};
+	D3D11_INPUT_ELEMENT_DESC inputElements[3] = {};
 
 	// Set up the first element - a position, which is 3 float values
 	inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
 	inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
 	inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
 
-	// Set up the second element - a color, which is 4 more float values
-	inputElements[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;			// 4x 32-bit floats
-	inputElements[1].SemanticName = "COLOR";							// Match our vertex shader input!
-	inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+	// Second element, uv
+	inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;			
+	inputElements[1].SemanticName = "TEXCOORD";							
+	inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+
+	// Third element, normals
+	inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	inputElements[2].SemanticName = "NORMAL";							
+	inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 
 	// Create the input layout, verifying our description against actual shader code
 	Graphics::Device->CreateInputLayout(
 		inputElements,							// An array of descriptions
-		2,										// How many elements in that array?
+		3,										// How many elements in that array?
 		vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
 		vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
 		inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
@@ -137,54 +142,32 @@ void Game::CreateGeometry()
 	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), shader1, shader2);
 	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), shader1, shader2);
 
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-
-	// First mesh vertices and indices
-	Vertex meshOneVertices[] =
-	{
-		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
-		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green },
-	};
-	int meshOneIndices[] = { 0, 1, 2 };
-
-	// Second mesh vertices and indices
-	Vertex meshTwoVertices[] =
-	{
-		{ XMFLOAT3(+0.7f, +0.7f, +0.0f), red },
-		{ XMFLOAT3(+0.7f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(+0.5f, +0.5f, +0.0f), green },
-		{ XMFLOAT3(+0.5f, +0.7f, +0.0f), green },
-	};
-	int meshTwoIndices[] = { 0, 1, 2, 0, 2, 3  };
-
-	// Third mesh vertices and indices
-	Vertex meshThreeVertices[] = 
-	{
-		{ XMFLOAT3(-0.9f, -0.9f, +0.0f), blue },
-		{ XMFLOAT3(-0.7f, -0.7f, +0.0f), green },
-		{ XMFLOAT3(-0.7f, -0.9f, +0.0f), green },
-		{ XMFLOAT3(-0.4f, -0.7f, +0.0f), green },
-		{ XMFLOAT3(-0.7f, -0.3f, +0.0f), blue },
-	};
-	int meshThreeIndices[] = { 0, 1, 2, 3, 2, 1, 4, 3, 1 };
-
-	// Creating new Mesh instances and adding them to storage vector
-	// probably not best practice to hard code their vertex and index count
-	meshes.push_back(std::make_shared<Mesh>("Triangle", meshOneVertices, 3, meshOneIndices, 3));
-	meshes.push_back(std::make_shared<Mesh>("Square", meshTwoVertices, 4, meshTwoIndices, 6));
-	meshes.push_back(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9));
+	// Create meshes from obj files
+	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>("sphere", FixPath("../../Assets/Meshes/sphere.obj").c_str());
+	std::shared_ptr<Mesh> cube = std::make_shared<Mesh>("cube", FixPath("../../Assets/Meshes/cube.obj").c_str());
+	std::shared_ptr<Mesh> cylinder = std::make_shared<Mesh>("cylinder", FixPath("../../Assets/Meshes/cylinder.obj").c_str());
+	std::shared_ptr<Mesh> helix = std::make_shared<Mesh>("helix", FixPath("../../Assets/Meshes/helix.obj").c_str());
+	std::shared_ptr<Mesh> quad = std::make_shared<Mesh>("quad", FixPath("../../Assets/Meshes/quad.obj").c_str());
+	std::shared_ptr<Mesh> quad_double_sided = std::make_shared<Mesh>("double sided quad", FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str());
+	std::shared_ptr<Mesh> torus = std::make_shared<Mesh>("torus", FixPath("../../Assets/Meshes/torus.obj").c_str());
 
 	// adding game entities
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9), material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9), material2));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9), material3));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Square", meshTwoVertices, 4, meshTwoIndices, 6), material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Triangle", meshOneVertices, 3, meshOneIndices, 3), material2));
+	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(torus, material1));
+
+	// Spreading out game entities to see
+	gameEntities[0]->GetTransform()->MoveAbsolute(-9, 0, 0);
+	gameEntities[1]->GetTransform()->MoveAbsolute(-6, 0, 0);
+	gameEntities[2]->GetTransform()->MoveAbsolute(-3, 0, 0);
+	gameEntities[3]->GetTransform()->MoveAbsolute(0, 0, 0);
+	gameEntities[4]->GetTransform()->MoveAbsolute(3, 0, 0);
+	gameEntities[5]->GetTransform()->MoveAbsolute(6, 0, 0);
+	gameEntities[6]->GetTransform()->MoveAbsolute(9, 0, 0);
 }
 
 
@@ -246,9 +229,9 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	Game::ImGuiUpdate(deltaTime);
 
-	gameEntities[0]->GetTransform()->SetPosition(sinf(totalTime), 0, 0);
-	gameEntities[1]->GetTransform()->SetRotation(0, 0, totalTime);
-	gameEntities[2]->GetTransform()->SetScale(sinf(totalTime),sinf(totalTime),0);
+	//gameEntities[0]->GetTransform()->SetPosition(sinf(totalTime), 0, 0);
+	//gameEntities[1]->GetTransform()->SetRotation(0, 0, totalTime);
+	//gameEntities[2]->GetTransform()->SetScale(sinf(totalTime),sinf(totalTime),0);
 
 	cameras[activeCameraNum]->Update(deltaTime);
 

@@ -30,8 +30,8 @@ private:
 	DirectX::XMFLOAT4X4 projMatrix;
 	float fov = 0.25f; // radians
 	float nearClipDistance = 0.1f;
-	float farClipDistance = 30;
-	float movementSpeed = 3.0f;
+	float farClipDistance = 50;
+	float movementSpeed = 15.0f;
 	float mouseLookSpeed = 0.005f;
 };
 

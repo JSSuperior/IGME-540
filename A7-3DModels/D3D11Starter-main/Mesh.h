@@ -12,7 +12,8 @@
 class Mesh {
 public:
 	// Constructor/Destructor
-	Mesh(std::string name, Vertex vertices[], int vertexSize, int indices[], int indexSize);
+	Mesh(std::string name, Vertex vertices[], int vertexSize, unsigned int indices[], int indexSize);
+	Mesh(std::string name, const char* fileName);
 	~Mesh(); // will be empty
 
 	// Getters
@@ -24,6 +25,7 @@ public:
 
 	// Methods
 	void Draw();
+	void CreateBuffers(Vertex vertices[], int vertexSize, unsigned int indices[], int indexSize);
 
 private:
 	// Buffers
