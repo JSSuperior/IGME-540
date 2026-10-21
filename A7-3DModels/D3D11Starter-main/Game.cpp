@@ -30,10 +30,7 @@ using namespace DirectX;
 // --------------------------------------------------------
 Game::Game()
 {
-	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some simple camera matrices.
-	//  - You'll be expanding and/or replacing these later
-	LoadShaders();
+	// Create geometry
 	CreateGeometry();
 
 	// Initialize ImGui itself & platform/renderer backends
@@ -61,12 +58,6 @@ Game::Game()
 		// the vertex buffer. For this course, all of your vertices will probably
 		// have the same layout, so we can just set this once at startup.
 		Graphics::Context->IASetInputLayout(inputLayout.Get());
-
-		// Set the active vertex and pixel shaders
-		//  - Once you start applying different shaders to different objects,
-		//    these calls will need to happen multiple times per frame
-		Graphics::Context->VSSetShader(vertexShader.Get(), 0, 0);
-		Graphics::Context->PSSetShader(pixelShader.Get(), 0, 0);
 	}
 
 	// Creating buffer size
@@ -108,71 +99,44 @@ Game::~Game()
 	ImGui::DestroyContext();
 }
 
-
-// --------------------------------------------------------
-// Loads shaders from compiled shader object (.cso) files
-// and also created the Input Layout that describes our 
-// vertex data to the rendering pipeline. 
-// - Input Layout creation is done here because it must 
-//    be verified against vertex shader byte code
-// - We'll have that byte code already loaded below
-// --------------------------------------------------------
-void Game::LoadShaders()
-{
-	// BLOBs (or Binary Large OBjects) for reading raw data from external files
-	// - This is a simplified way of handling big chunks of external data
-	// - Literally just a big array of bytes read from a file
-	ID3DBlob* vertexShaderBlob;
-
-	// Loading shaders
-	//  - Visual Studio will compile our shaders at build time
-	//  - They are saved as .cso (Compiled Shader Object) files
-	//  - We need to load them when the application starts
-	{
-		// Read our compiled shader code files into blobs
-		// - Essentially just "open the file and plop its contents here"
-		// - Uses the custom FixPath() helper from Helpers.h to ensure relative paths
-		// - Note the "L" before the string - this tells the compiler the string uses wide characters
-		
-		
-		D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
-		
-	}
-
-	// Create an input layout 
-	//  - This describes the layout of data sent to a vertex shader
-	//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
-	//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
-	//  - Luckily, we already have that loaded (the vertex shader blob above)
-	{
-		D3D11_INPUT_ELEMENT_DESC inputElements[2] = {};
-
-		// Set up the first element - a position, which is 3 float values
-		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
-		inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
-		inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
-
-		// Set up the second element - a color, which is 4 more float values
-		inputElements[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;			// 4x 32-bit floats
-		inputElements[1].SemanticName = "COLOR";							// Match our vertex shader input!
-		inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
-
-		// Create the input layout, verifying our description against actual shader code
-		Graphics::Device->CreateInputLayout(
-			inputElements,							// An array of descriptions
-			2,										// How many elements in that array?
-			vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
-			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
-			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
-	}
-}
-
-
 // --------------------------------------------------------
 // Creates the geometry we're going to draw
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
+	// Create input layout for vertices
+	ID3DBlob* vertexShaderBlob;
+	D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
+
+	D3D11_INPUT_ELEMENT_DESC inputElements[2] = {};
+
+	// Set up the first element - a position, which is 3 float values
+	inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
+	inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
+	inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
+
+	// Set up the second element - a color, which is 4 more float values
+	inputElements[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;			// 4x 32-bit floats
+	inputElements[1].SemanticName = "COLOR";							// Match our vertex shader input!
+	inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+
+	// Create the input layout, verifying our description against actual shader code
+	Graphics::Device->CreateInputLayout(
+		inputElements,							// An array of descriptions
+		2,										// How many elements in that array?
+		vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
+		vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
+		inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
+
+	// Loading shaders
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> shader1 = LoadVertexShader(L"VertexShader.cso");
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> shader2 = LoadPixelShader(L"PixelShader.cso");
+
+	// Creating materials
+	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), shader1, shader2);
+	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), shader1, shader2);
+	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), shader1, shader2);
+
 	// Create some temporary variables to represent colors
 	// - Not necessary, just makes things more readable
 	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -216,11 +180,11 @@ void Game::CreateGeometry()
 	meshes.push_back(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9));
 
 	// adding game entities
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9)));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9)));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9)));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Square", meshTwoVertices, 4, meshTwoIndices, 6)));
-	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Triangle", meshOneVertices, 3, meshOneIndices, 3)));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9), material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9), material2));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Other", meshThreeVertices, 5, meshThreeIndices, 9), material3));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Square", meshTwoVertices, 4, meshTwoIndices, 6), material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(std::make_shared<Mesh>("Triangle", meshOneVertices, 3, meshOneIndices, 3), material2));
 }
 
 
@@ -437,9 +401,15 @@ void Game::Draw(float deltaTime, float totalTime)
 	//}
 	//triangle->Draw();
 	for (std::shared_ptr<GameEntity> gameEntity : gameEntities) {
+		// Set the active vertex and pixel shaders
+		//  - Once you start applying different shaders to different objects,
+		//    these calls will need to happen multiple times per frame
+		Graphics::Context->VSSetShader(gameEntity->GetMaterial()->GetVertexShader().Get(), 0, 0);
+		Graphics::Context->PSSetShader(gameEntity->GetMaterial()->GetPixelShader().Get(), 0, 0);
+
 		// Creating vertex shader data
 		VertexShaderData vsData{};
-		vsData.colorTint = DirectX::XMFLOAT4(color);
+		vsData.colorTint = gameEntity->GetMaterial()->GetColorTint();
 		vsData.worldMatrix = gameEntity->GetTransform()->GetWorldMatrix();
 
 		// needs to be for active camera

@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "GameEntity.h"
 #include "Camera.h"
+#include "Material.h"
 
 class Game
 {
@@ -29,7 +30,6 @@ public:
 
 private:
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
-	void LoadShaders();
 	void CreateGeometry();
 
 	// Note the usage of ComPtr below
