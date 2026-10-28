@@ -2,6 +2,8 @@ cbuffer DataFromCPU : register(b0)
 {
     float4 colorTint;
     float2 totalTime;
+    float2 scale;
+    float2 offset;
 }
 
 struct VertexToPixel

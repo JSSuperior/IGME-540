@@ -122,6 +122,7 @@ void Game::CreateGeometry()
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderUV = LoadPixelShader(L"DebugUVsPS.cso");
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal = LoadPixelShader(L"DebugNormalsPS.cso");
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom = LoadPixelShader(L"CustomPS.cso");
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCombo = LoadPixelShader(L"TextureComboPS.cso");
 
 	//Creating Sampler
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
@@ -142,20 +143,33 @@ void Game::CreateGeometry()
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/SteelColor.png").c_str(), 0, steelTexture.GetAddressOf());
 
 	// Creating materials
-	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), vertexShader, pixelShaderDefault);
 	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderUV);
 	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderNormal);
 	std::shared_ptr<Material> material4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCustom);
+	std::shared_ptr<Material> material5 = std::make_shared<Material>(DirectX::XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f), vertexShader, pixelShaderDefault);
+	std::shared_ptr<Material> material6 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCombo);
 
 	// Adding textures and samplers
 	material1->AddSampler(0,samplerState);
 	material1->AddTextureSRV(0,woodTexture);
-	material2->AddSampler(0, samplerState);
-	material2->AddTextureSRV(0, woodTexture);
-	material3->AddSampler(0, samplerState);
-	material3->AddTextureSRV(0, steelTexture);
-	material4->AddSampler(0, samplerState);
-	material4->AddTextureSRV(0, steelTexture);
+	//material2->AddSampler(0, samplerState);
+	//material2->AddTextureSRV(0, woodTexture);
+	//material3->AddSampler(0, samplerState);
+	//material3->AddTextureSRV(0, steelTexture);
+	//material4->AddSampler(0, samplerState);
+	//material4->AddTextureSRV(0, steelTexture);
+	material5->AddSampler(0, samplerState);
+	material5->AddTextureSRV(0, steelTexture);
+
+	// Custom combo shader
+	material6->AddSampler(0, samplerState);
+	material6->AddTextureSRV(0, woodTexture);
+	material6->AddTextureSRV(1, steelTexture);
+
+	// Adjusting scale and offset for testing
+	material5->SetScale(4.0f,4.0f);
+	material5->SetOffset(0.5f,0.5f);
 
 	// Create meshes from obj files
 	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>("sphere", FixPath("../../Assets/Meshes/sphere.obj").c_str());
@@ -181,9 +195,10 @@ void Game::CreateGeometry()
 	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material2));
 	gameEntities.push_back(std::make_shared<GameEntity>(helix, material2));
 	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material5));
 	gameEntities.push_back(std::make_shared<GameEntity>(torus, material4));
 	gameEntities.push_back(std::make_shared<GameEntity>(helix, material4));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, material6));
 
 	// Spreading out game entities to see
 	gameEntities[0]->GetTransform()->MoveAbsolute(-9, 0, 0);
@@ -194,7 +209,8 @@ void Game::CreateGeometry()
 	gameEntities[5]->GetTransform()->MoveAbsolute(6, 0, 0);
 	gameEntities[6]->GetTransform()->MoveAbsolute(9, 0, 0);
 	gameEntities[7]->GetTransform()->MoveAbsolute(12, 0, 0);
-}
+	gameEntities[8]->GetTransform()->MoveAbsolute(15, 0, 0);
+}	
 
 
 // --------------------------------------------------------
@@ -323,36 +339,53 @@ void Game::ImGuiUpdate(float deltaTime)
 		}
 	}
 
-	// Assignment 4 UI components
-	if (ImGui::CollapsingHeader("Mesh Values")) {
-		//ImGui::DragFloat3("Offset", offset, 0.1f);
-		ImGui::ColorEdit4("Color Tint", color);
-	}
+	//// Assignment 4 UI components
+	//if (ImGui::CollapsingHeader("Mesh Values")) {
+	//	//ImGui::DragFloat3("Offset", offset, 0.1f);
+	//	ImGui::ColorEdit4("Color Tint", color);
+	//}
 
 	// I feel like there has to be a better way to do this, but I can't think of one atm
 	// unsure if it warrant creating its own variables in header
 	if (ImGui::CollapsingHeader("Game Entities")) {
-		for (int i = 0; i < gameEntities.size(); i++) {
+		for (unsigned int i = 0; i < gameEntities.size(); i++) {
 			ImGui::Text("Game Entity: %i", i);
 			ImGui::PushID(i);
 
 			// Get game entity transform
 			std::shared_ptr<Transform> transform = gameEntities[i]->GetTransform();
+
+			// Get game entity material
+			std::shared_ptr<Material> material = gameEntities[i]->GetMaterial();
 			
 			// Convert and store temporarily as arrays
 			float position[3] = { transform->GetPosition().x, transform->GetPosition().y, transform->GetPosition().z};
 			float rotation[3] = { transform->GetPitchYawRoll().x, transform->GetPitchYawRoll().y, transform->GetPitchYawRoll().z };
 			float scale[3] = { transform->GetScale().x, transform->GetScale().y, transform->GetScale().z};
+			float colorTint[4] = { material->GetColorTint().x, material->GetColorTint().y, material->GetColorTint().z, material->GetColorTint().w };
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>* textures = material->GetSRVs();
 
 			// Sliders
 			ImGui::DragFloat3("Position", position, 0.1f);
 			ImGui::DragFloat3("Rotation (Radians)", rotation, 0.1f);
 			ImGui::DragFloat3("Scale", scale, 0.1f);
 
+			// Texture info
+			ImGui::Text("Texture Info");
+			ImGui::ColorEdit4("Color Tint", colorTint);
+			for (unsigned int j = 0; j < material->GetSRVsLength(); j++) {
+				if (textures[j] != NULL) {
+					ImGui::Image((void*)textures[j].Get(), ImVec2(100, 100));
+				}
+			}
+
+			ImGui::Dummy(ImVec2(0.0f, 20.0f));
+
 			// Update transform values
 			transform->SetPosition(DirectX::XMFLOAT3(position));
 			transform->SetRotation(DirectX::XMFLOAT3(rotation));
 			transform->SetScale(DirectX::XMFLOAT3(scale));
+			material->SetColorTint(DirectX::XMFLOAT4(colorTint));
 			ImGui::PopID();
 		}
 	}
@@ -436,6 +469,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		PixelShaderData psData{};
 		psData.colorTint = gameEntity->GetMaterial()->GetColorTint();
 		psData.totalTime = DirectX::XMFLOAT2(totalTime, 1);
+		psData.scale = gameEntity->GetMaterial()->GetScale();
+		psData.offset = gameEntity->GetMaterial()->GetOffset();
 
 		// mapping/passing info to buffer
 		Graphics::FillAndBindNextConstantBuffer(
@@ -444,6 +479,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			D3D11_PIXEL_SHADER,
 			0);
 
+		gameEntity->GetMaterial()->BindTexturesAndSamplers();
 		gameEntity->Draw();
 	}
 
