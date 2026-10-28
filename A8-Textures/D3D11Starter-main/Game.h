@@ -8,6 +8,7 @@
 #include "GameEntity.h"
 #include "Camera.h"
 #include "Material.h"
+#include <WICTextureLoader.h>
 
 class Game
 {

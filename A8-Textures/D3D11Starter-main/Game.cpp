@@ -123,11 +123,39 @@ void Game::CreateGeometry()
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal = LoadPixelShader(L"DebugNormalsPS.cso");
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom = LoadPixelShader(L"CustomPS.cso");
 
+	//Creating Sampler
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+	D3D11_SAMPLER_DESC sDesc = {};
+	sDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sDesc.MaxAnisotropy = 16;
+	sDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	Graphics::Device->CreateSamplerState(&sDesc, samplerState.GetAddressOf());
+
+	// Loading textures
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> steelTexture;
+
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/WoodColor.png").c_str(), 0, woodTexture.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/SteelColor.png").c_str(), 0, steelTexture.GetAddressOf());
+
 	// Creating materials
 	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
 	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderUV);
 	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderNormal);
 	std::shared_ptr<Material> material4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCustom);
+
+	// Adding textures and samplers
+	material1->AddSampler(0,samplerState);
+	material1->AddTextureSRV(0,woodTexture);
+	material2->AddSampler(0, samplerState);
+	material2->AddTextureSRV(0, woodTexture);
+	material3->AddSampler(0, samplerState);
+	material3->AddTextureSRV(0, steelTexture);
+	material4->AddSampler(0, samplerState);
+	material4->AddTextureSRV(0, steelTexture);
 
 	// Create meshes from obj files
 	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>("sphere", FixPath("../../Assets/Meshes/sphere.obj").c_str());

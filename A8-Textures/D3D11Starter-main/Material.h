@@ -23,10 +23,15 @@ public:
 	void SetColorTint(DirectX::XMFLOAT4 _colorTint);
 	void SetVertexShader(Microsoft::WRL::ComPtr<ID3D11VertexShader> _vertexShader);
 	void SetPixelShader(Microsoft::WRL::ComPtr<ID3D11PixelShader> _pixelShader);
+	void AddTextureSRV(unsigned int slot, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
+	void AddSampler(unsigned int slot, Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler);
+	void BindTexturesAndSamplers();
 private:
 	// Members
 	DirectX::XMFLOAT4 colorTint;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureSRVs[128];
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplers[16];
 };
 

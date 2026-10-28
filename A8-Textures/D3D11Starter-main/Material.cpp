@@ -54,3 +54,18 @@ void Material::SetPixelShader(Microsoft::WRL::ComPtr<ID3D11PixelShader> _pixelSh
 {
 	pixelShader = _pixelShader;
 }
+
+void Material::AddTextureSRV(unsigned int slot, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+{
+	textureSRVs[slot] = srv;
+}
+
+void Material::AddSampler(unsigned int slot, Microsoft::WRL::ComPtr<ID3D11SamplerState> sampler)
+{
+	samplers[slot] = sampler;
+}
+
+void Material::BindTexturesAndSamplers()
+{
+	
+}
