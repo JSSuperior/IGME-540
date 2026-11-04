@@ -64,6 +64,13 @@ Game::Game()
 	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.25f, DirectX::XMFLOAT3(-0.5,0,-1)));
 	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.50f, DirectX::XMFLOAT3(0.5, 0, -1)));
 	activeCameraNum = 0;
+
+	// Setup lights
+	directionalLight1 = {};
+	directionalLight1.Type = LIGHT_TYPE_DIRECTIONAL;
+	directionalLight1.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+	directionalLight1.Color = DirectX::XMFLOAT3(0.2f, 0.2f, 1.0f);
+	directionalLight1.Intensity = 1.0f;
 }
 
 
@@ -143,7 +150,7 @@ void Game::CreateGeometry()
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/SteelColor.png").c_str(), 0, steelTexture.GetAddressOf());
 
 	// Creating materials
-	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f), vertexShader, pixelShaderDefault);
+	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
 	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderUV);
 	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderNormal);
 	std::shared_ptr<Material> material4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCustom);
@@ -199,6 +206,7 @@ void Game::CreateGeometry()
 	gameEntities.push_back(std::make_shared<GameEntity>(torus, material4));
 	gameEntities.push_back(std::make_shared<GameEntity>(helix, material4));
 	gameEntities.push_back(std::make_shared<GameEntity>(cube, material6));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, material1));
 
 	// Spreading out game entities to see
 	gameEntities[0]->GetTransform()->MoveAbsolute(-9, 0, 0);
@@ -210,6 +218,7 @@ void Game::CreateGeometry()
 	gameEntities[6]->GetTransform()->MoveAbsolute(9, 0, 0);
 	gameEntities[7]->GetTransform()->MoveAbsolute(12, 0, 0);
 	gameEntities[8]->GetTransform()->MoveAbsolute(15, 0, 0);
+	gameEntities[9]->GetTransform()->MoveAbsolute(18, 0, 0);
 }	
 
 
@@ -457,6 +466,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		// needs to be for active camera
 		vsData.projMatrix = cameras[activeCameraNum]->GetProjMatrix();
 		vsData.viewMatrix = cameras[activeCameraNum]->GetViewMatrix();
+		vsData.worldInvTranspose = gameEntity->GetTransform()->GetWorldInverseTransposeMatrix();
 
 		// mapping/passing info to buffer
 		Graphics::FillAndBindNextConstantBuffer(
@@ -467,10 +477,13 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// Creating pixel shader data
 		PixelShaderData psData{};
+		psData.light = directionalLight1;
 		psData.colorTint = gameEntity->GetMaterial()->GetColorTint();
+		psData.ambientColor = ambientColor;
 		psData.totalTime = DirectX::XMFLOAT2(totalTime, 1);
 		psData.scale = gameEntity->GetMaterial()->GetScale();
 		psData.offset = gameEntity->GetMaterial()->GetOffset();
+		psData.cameraPos = cameras[activeCameraNum]->GetTransform()->GetPosition();
 
 		// mapping/passing info to buffer
 		Graphics::FillAndBindNextConstantBuffer(

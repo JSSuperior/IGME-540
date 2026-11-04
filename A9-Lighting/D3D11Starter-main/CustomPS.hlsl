@@ -1,23 +1,16 @@
+#include "ShaderInclusions.hlsli"
+
 cbuffer DataFromCPU : register(b0)
 {
+    Light light;
     float4 colorTint;
+    float4 ambientColor;
     float2 totalTime;
     float2 scale;
     float2 offset;
+    float2 padding;
+    float3 cameraPos;
 }
-
-struct VertexToPixel
-{
-	// Data type
-	//  |
-	//  |   Name          Semantic
-	//  |    |                |
-	//  v    v                v
-    float4 screenPosition : SV_POSITION;
-    float2 uv : TEXTCOORD;
-    float3 normal : NORMAL;
-	//float4 color			: COLOR;
-};
 
 float4 main(VertexToPixel input) : SV_TARGET
 {

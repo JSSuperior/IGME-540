@@ -1,31 +1,20 @@
+#include "ShaderInclusions.hlsli"
+#include "Lights.h"
+
 cbuffer DataFromCPU : register(b0)
 {
+    Light light;
     float4 colorTint;
+    float4 ambientColor;
     float2 totalTime;
     float2 scale;
     float2 offset;
+    float2 padding;
+    float3 cameraPos;
 }
 
 Texture2D SurfaceTexture : register(t0);
 SamplerState BasicSampler : register(s0);
-
-// Struct representing the data we expect to receive from earlier pipeline stages
-// - Should match the output of our corresponding vertex shader
-// - The name of the struct itself is unimportant
-// - The variable names don't have to match other shaders (just the semantics)
-// - Each variable must have a semantic, which defines its usage
-struct VertexToPixel
-{
-	// Data type
-	//  |
-	//  |   Name          Semantic
-	//  |    |                |
-	//  v    v                v
-	float4 screenPosition	: SV_POSITION;
-    float2 uv : TEXTCOORD;
-    float3 normal : NORMAL;
-	//float4 color			: COLOR;
-};
 
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
@@ -42,8 +31,13 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// - This color (like most values passing through the rasterizer) is 
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
-    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint;
-	return surfaceColor;
+    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint * ambientColor;
+    
+    input.normal = normalize(input.normal);
+    //return float4(input.normal, 1);
+	//return surfaceColor;
+    return float4(light.Color, 1);
+    //return float4(cameraPos, 1);
     //return float4(input.uv, 0, 1);
     //return float4(input.normal, 1);
 
