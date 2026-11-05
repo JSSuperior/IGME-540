@@ -2,7 +2,7 @@
 
 cbuffer DataFromCPU : register(b0)
 {
-    Light light;
+    Light lights[5];
     float4 colorTint;
     float4 ambientColor;
     float2 totalTime;

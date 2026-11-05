@@ -1,3 +1,6 @@
+// Used the demo for help when I got stuck
+// https://github.com/vixorien/ggp-demos/blob/main/GGP/09%20-%20Basic%20Lighting/Lighting.hlsli
+
 #ifndef __GGP_SHADER_INCLUDES__
 #define __GGP_SHADER_INCLUDES__
 
@@ -54,4 +57,65 @@ struct VertexToPixel
     float3 worldPosition : POSITION;
 };
 
+// Helper functions
+//Attenuate
+float calcAttenuation(Light _light, float3 _worldPosition)
+{
+    float dist = distance(_light.Position, _worldPosition);
+    float att = saturate(1.0f - (dist * dist / (_light.Range * _light.Range)));
+    return att * att;
+};
+
+// Difuse term
+float3 calcDiffuseTerm(float3 _normal, float3 _directionToLight)
+{
+    return saturate(dot(_normal, normalize(_directionToLight)));
+};
+
+// Specular term
+float3 calcSpecularTerm(float3 _normal, float3 _directionToLight, float3 _cameraPosition, float3 _worldPosition)
+{
+    float3 refl = reflect(normalize(-_directionToLight), _normal);
+    float RdotV = saturate(dot(refl, normalize(_cameraPosition - _worldPosition)));
+    return pow(RdotV, 128);
+};
+
+// Directional light calculation
+float4 directionalLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
+{
+    // Calculate diffuse term and specular term
+    float3 diffuseTerm = calcDiffuseTerm(_normal, -_light.Direction);
+    float3 specularTerm = calcSpecularTerm(_normal, -_light.Direction, _cameraPosition, _worldPosition);
+    
+    // Add terms together and multiply by light settings + surface color
+    return ((diffuseTerm * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity).xyzz;
+};
+
+// Point light calculation
+float4 pointLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
+{
+    // Calculate attenation, diffuse term and specular term
+    float attenuation = calcAttenuation(_light, _worldPosition);
+    float3 diffuseTerm = calcDiffuseTerm(_normal, (_light.Position - _worldPosition));
+    float3 specularTerm = calcSpecularTerm(_normal, (_light.Position - _worldPosition), _cameraPosition, _worldPosition);
+    
+    // Add terms together and multiply by light settings + surface color + attenuation
+    return ((diffuseTerm * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity * attenuation).xyzz;
+};
+
+// Spot light calculation
+float4 spotLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
+{
+    // Calculate cos angle between pixel and light direction
+    float pixelAngle = saturate(dot(-normalize(_light.Position - _worldPosition), _light.Direction));
+    
+    // Calculate light falloff range
+    float cosOuter = cos(_light.SpotOuterAngle);
+    float cosInner = cos(_light.SpotInnerAngle);
+    float falloffRange = cosOuter - cosInner;
+    
+    // Calculate/Apply linear fall off to light
+    float spotTerm = saturate((cosOuter - pixelAngle) / falloffRange);
+    return pointLight(_surfaceColor, _normal, _light, _cameraPosition, _worldPosition) * spotTerm;
+}
 #endif

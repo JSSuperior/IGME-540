@@ -1,9 +1,8 @@
 #include "ShaderInclusions.hlsli"
-#include "Lights.h"
 
 cbuffer DataFromCPU : register(b0)
 {
-    Light light;
+    Light lights[5];
     float4 colorTint;
     float4 ambientColor;
     float2 totalTime;
@@ -27,18 +26,31 @@ SamplerState BasicSampler : register(s0);
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	// Just return the input color
-	// - This color (like most values passing through the rasterizer) is 
-	//   interpolated for each pixel between the corresponding vertices 
-	//   of the triangle we're rendering
+    // normalizing input normals
+    input.normal = normalize(input.normal);
+    
+    // Sampling texture and applying ambient light
     float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint * ambientColor;
     
-    input.normal = normalize(input.normal);
-    //return float4(input.normal, 1);
-	//return surfaceColor;
-    return float4(light.Color, 1);
-    //return float4(cameraPos, 1);
-    //return float4(input.uv, 0, 1);
-    //return float4(input.normal, 1);
-
+    // Adding together all lights in the scene
+    // need to make sure to update this value when changed elsewhere
+    for (int i = 0; i < 5; i++)
+    {
+        switch (lights[i].Type)
+        {
+            case LIGHT_TYPE_DIRECTIONAL:
+                surfaceColor += directionalLight(surfaceColor, input.normal, lights[i], cameraPos, input.worldPosition);
+                break;
+            case LIGHT_TYPE_POINT:
+                surfaceColor += pointLight(surfaceColor, input.normal, lights[i], cameraPos, input.worldPosition);
+                break;
+            case LIGHT_TYPE_SPOT:
+                surfaceColor += spotLight(surfaceColor, input.normal, lights[i], cameraPos, input.worldPosition);
+                break;
+        }
+        
+    }
+    
+    // Return final surface color with all applied lights
+    return surfaceColor;
 }

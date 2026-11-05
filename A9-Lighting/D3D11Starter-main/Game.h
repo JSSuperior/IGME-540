@@ -58,7 +58,7 @@ private:
 	// Color and Vector
 	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float offset[3] = { 0.0f, 0.0f, 0.0f };
-	DirectX::XMFLOAT4 ambientColor = DirectX::XMFLOAT4(0.0f, 0.1f, 0.25f, 0.0f);
+	DirectX::XMFLOAT4 ambientColor = DirectX::XMFLOAT4(0.1f, 0.1f, 0.25f, 1.0f);
 
 	// Mesh storage vector
 	std::vector<std::shared_ptr<Mesh>> meshes;
@@ -70,6 +70,7 @@ private:
 	//std::shared_ptr<Camera> camera;
 
 	// Light struct
-	Light directionalLight1;
+	Light sceneLights[5];
+	//Light directionalLight1;
 };
 

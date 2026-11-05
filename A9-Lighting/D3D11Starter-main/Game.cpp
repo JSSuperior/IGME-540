@@ -10,6 +10,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <string>
+#include <numbers>
 
 // This code assumes files are in "ImGui" subfolder!
 // Adjust as necessary for your own folder structure and project setup
@@ -66,11 +67,47 @@ Game::Game()
 	activeCameraNum = 0;
 
 	// Setup lights
-	directionalLight1 = {};
+	Light directionalLight1 = {};
 	directionalLight1.Type = LIGHT_TYPE_DIRECTIONAL;
 	directionalLight1.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 	directionalLight1.Color = DirectX::XMFLOAT3(0.2f, 0.2f, 1.0f);
-	directionalLight1.Intensity = 1.0f;
+	directionalLight1.Intensity = 5.0f;
+
+	Light directionalLight2 = {};
+	directionalLight2.Type = LIGHT_TYPE_DIRECTIONAL;
+	directionalLight2.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f);
+	directionalLight2.Color = DirectX::XMFLOAT3(1.0f, 0.2f, 0.2f);
+	directionalLight2.Intensity = 5.0f;
+
+	Light pointLight1 = {};
+	pointLight1.Type = LIGHT_TYPE_POINT;
+	pointLight1.Position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+	pointLight1.Color = DirectX::XMFLOAT3(0.2f, 1.0f, 0.2f);
+	pointLight1.Intensity = 5.0f;
+	pointLight1.Range = 10.0f;
+
+	Light pointLight2 = {};
+	pointLight2.Type = LIGHT_TYPE_POINT;
+	pointLight2.Position = DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f);
+	pointLight2.Color = DirectX::XMFLOAT3(0.5f, 0.0f, 0.5f);
+	pointLight2.Intensity = 3.0f;
+	pointLight2.Range = 5.0f;
+
+	Light spotLight1 = {};
+	spotLight1.Type = LIGHT_TYPE_SPOT;
+	spotLight1.Position = DirectX::XMFLOAT3(0.0f, 3.0f, 0.0f);
+	spotLight1.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
+	spotLight1.SpotInnerAngle = DirectX::XMConvertToRadians(20.0f);
+	spotLight1.SpotOuterAngle = DirectX::XMConvertToRadians(30.0f);
+	spotLight1.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+	spotLight1.Intensity = 2.0f;
+	spotLight1.Range = 10.0f;
+
+	sceneLights[0] = directionalLight1;
+	sceneLights[1] = directionalLight2;
+	sceneLights[2] = pointLight1;
+	sceneLights[3] = pointLight2;
+	sceneLights[4] = spotLight1;
 }
 
 
@@ -196,17 +233,29 @@ void Game::CreateGeometry()
 	meshes.push_back(quad_double_sided);
 	meshes.push_back(torus);
 
+	//// adding game entities
+	//gameEntities.push_back(std::make_shared<GameEntity>(sphere, material3));
+	//gameEntities.push_back(std::make_shared<GameEntity>(cube, material3));
+	//gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material2));
+	//gameEntities.push_back(std::make_shared<GameEntity>(helix, material2));
+	//gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
+	//gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material5));
+	//gameEntities.push_back(std::make_shared<GameEntity>(torus, material4));
+	//gameEntities.push_back(std::make_shared<GameEntity>(helix, material4));
+	//gameEntities.push_back(std::make_shared<GameEntity>(cube, material6));
+	//gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
+	// 
 	// adding game entities
-	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material3));
-	gameEntities.push_back(std::make_shared<GameEntity>(cube, material3));
-	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material2));
-	gameEntities.push_back(std::make_shared<GameEntity>(helix, material2));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material5));
-	gameEntities.push_back(std::make_shared<GameEntity>(torus, material4));
-	gameEntities.push_back(std::make_shared<GameEntity>(helix, material4));
-	gameEntities.push_back(std::make_shared<GameEntity>(cube, material6));
+	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
 	gameEntities.push_back(std::make_shared<GameEntity>(cube, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(torus, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
 
 	// Spreading out game entities to see
 	gameEntities[0]->GetTransform()->MoveAbsolute(-9, 0, 0);
@@ -423,6 +472,43 @@ void Game::ImGuiUpdate(float deltaTime)
 		}
 	}
 	
+	// Assignment 9 UI Components
+	if (ImGui::CollapsingHeader("Lighting Stuff")) {
+		// Scene ambient color
+		float tempAmbientColor[4] = { ambientColor.x, ambientColor.y, ambientColor.z, ambientColor.w };
+		ImGui::ColorEdit4("Scene Ambient Color", tempAmbientColor);
+		ambientColor = DirectX::XMFLOAT4(tempAmbientColor);
+
+		// Spacing
+		ImGui::Dummy(ImVec2(0.0f, 20.0f));
+
+		// Light source color/intensities
+		for (unsigned int i = 0; i < std::size(sceneLights); i++) {
+			ImGui::PushID(i);
+			float tempLightColor[3] = { sceneLights[i].Color.x, sceneLights[i].Color.y, sceneLights[i].Color.z };
+
+			// Light info
+			ImGui::Text("Light: %i", i);
+			switch (sceneLights[i].Type) {
+			case 0:
+				ImGui::Text("Type: Directional");
+				break;
+			case 1:
+				ImGui::Text("Type: Point");
+				break;
+			case 2:
+				ImGui::Text("Type: Spot");
+				break;
+			}
+
+			// Editable properties
+			ImGui::ColorEdit3("Light ", tempLightColor);
+			ImGui::DragFloat("Intensity", &sceneLights[i].Intensity, 0.1f);
+
+			sceneLights[i].Color = DirectX::XMFLOAT3(tempLightColor);
+			ImGui::PopID();
+		}
+	}
 
 	ImGui::End();
 
@@ -477,7 +563,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// Creating pixel shader data
 		PixelShaderData psData{};
-		psData.light = directionalLight1;
+		// Just need to be careful of length matching cbuffer
+		for (int i = 0; i < std::size(sceneLights); i++) {
+			psData.lights[i] = sceneLights[i];
+		}
 		psData.colorTint = gameEntity->GetMaterial()->GetColorTint();
 		psData.ambientColor = ambientColor;
 		psData.totalTime = DirectX::XMFLOAT2(totalTime, 1);

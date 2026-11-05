@@ -13,7 +13,7 @@ struct VertexShaderData {
 };
 
 struct PixelShaderData {
-	Light light;
+	Light lights[5];
 	DirectX::XMFLOAT4 colorTint;
 	DirectX::XMFLOAT4 ambientColor;
 	DirectX::XMFLOAT2 totalTime;

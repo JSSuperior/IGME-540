@@ -1,6 +1,5 @@
-#include <DirectXMath.h>
-
 #pragma once
+#include <DirectXMath.h>
 
 #define LIGHT_TYPE_DIRECTIONAL	0
 #define LIGHT_TYPE_POINT		1
