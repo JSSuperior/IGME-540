@@ -88,14 +88,14 @@ Game::Game()
 
 	Light pointLight2 = {};
 	pointLight2.Type = LIGHT_TYPE_POINT;
-	pointLight2.Position = DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f);
+	pointLight2.Position = DirectX::XMFLOAT3(9.0f, 1.0f, 0.0f);
 	pointLight2.Color = DirectX::XMFLOAT3(0.5f, 0.0f, 0.5f);
 	pointLight2.Intensity = 3.0f;
 	pointLight2.Range = 5.0f;
 
 	Light spotLight1 = {};
 	spotLight1.Type = LIGHT_TYPE_SPOT;
-	spotLight1.Position = DirectX::XMFLOAT3(0.0f, 3.0f, 0.0f);
+	spotLight1.Position = DirectX::XMFLOAT3(3.0f, 2.0f, 0.0f);
 	spotLight1.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 	spotLight1.SpotInnerAngle = DirectX::XMConvertToRadians(20.0f);
 	spotLight1.SpotOuterAngle = DirectX::XMConvertToRadians(30.0f);
@@ -492,12 +492,16 @@ void Game::ImGuiUpdate(float deltaTime)
 			switch (sceneLights[i].Type) {
 			case 0:
 				ImGui::Text("Type: Directional");
+				ImGui::Text("Light Direction: (x:%f, y:%f, z:%f)", sceneLights[i].Direction.x, sceneLights[i].Direction.y, sceneLights[i].Direction.z);
 				break;
 			case 1:
 				ImGui::Text("Type: Point");
+				ImGui::Text("Light Position: (x:%f, y:%f, z:%f)", sceneLights[i].Position.x, sceneLights[i].Position.y, sceneLights[i].Position.z);
 				break;
 			case 2:
 				ImGui::Text("Type: Spot");
+				ImGui::Text("Light Position: (x:%f, y:%f, z:%f)", sceneLights[i].Position.x, sceneLights[i].Position.y, sceneLights[i].Position.z);
+				ImGui::Text("Light Direction: (x:%f, y:%f, z:%f)", sceneLights[i].Direction.x, sceneLights[i].Direction.y, sceneLights[i].Direction.z);
 				break;
 			}
 

@@ -84,8 +84,8 @@ float3 calcSpecularTerm(float3 _normal, float3 _directionToLight, float3 _camera
 float4 directionalLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
 {
     // Calculate diffuse term and specular term
-    float3 diffuseTerm = calcDiffuseTerm(_normal, -_light.Direction);
-    float3 specularTerm = calcSpecularTerm(_normal, -_light.Direction, _cameraPosition, _worldPosition);
+    float3 diffuseTerm = calcDiffuseTerm(_normal, -normalize(_light.Direction));
+    float3 specularTerm = calcSpecularTerm(_normal, -normalize(_light.Direction), _cameraPosition, _worldPosition);
     
     // Add terms together and multiply by light settings + surface color
     return ((diffuseTerm * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity).xyzz;
@@ -107,7 +107,7 @@ float4 pointLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _ca
 float4 spotLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
 {
     // Calculate cos angle between pixel and light direction
-    float pixelAngle = saturate(dot(-normalize(_light.Position - _worldPosition), _light.Direction));
+    float pixelAngle = saturate(dot(-normalize(_light.Position - _worldPosition), normalize(_light.Direction)));
     
     // Calculate light falloff range
     float cosOuter = cos(_light.SpotOuterAngle);
