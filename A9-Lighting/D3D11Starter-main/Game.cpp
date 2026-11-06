@@ -62,8 +62,8 @@ Game::Game()
 	}
 
 	// Setup cameras
-	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.25f, DirectX::XMFLOAT3(-0.5,0,-1)));
-	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.50f, DirectX::XMFLOAT3(0.5, 0, -1)));
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.25f, DirectX::XMFLOAT3(-0.5,0,-20)));
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), 0.50f, DirectX::XMFLOAT3(0.5, 0, -20)));
 	activeCameraNum = 0;
 
 	// Setup lights
