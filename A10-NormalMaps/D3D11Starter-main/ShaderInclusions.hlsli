@@ -37,6 +37,7 @@ struct VertexShaderInput
 	//float4 color			: COLOR;        // RGBA color
     float2 uv : TEXCOORD;
     float3 normal : NORMAL;
+    float3 tangent : TANGENT;
 };
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -55,6 +56,7 @@ struct VertexToPixel
     float2 uv : TEXTCOORD;
     float3 normal : NORMAL;
     float3 worldPosition : POSITION;
+    //float3 tangent : TANGENT;
 };
 
 // Helper functions
