@@ -22,3 +22,8 @@ struct PixelShaderData {
 	DirectX::XMFLOAT2 padding;
 	DirectX::XMFLOAT3 cameraPos;
 };
+
+struct SkyBoxShaderData {
+	DirectX::XMFLOAT4X4 viewMatrix;
+	DirectX::XMFLOAT4X4 projMatrix;
+};

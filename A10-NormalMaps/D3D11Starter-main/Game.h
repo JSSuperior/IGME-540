@@ -10,6 +10,7 @@
 #include "Material.h"
 #include <WICTextureLoader.h>
 #include "Lights.h"
+#include "Sky.h"
 
 class Game
 {
@@ -58,7 +59,7 @@ private:
 	// Color and Vector
 	float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float offset[3] = { 0.0f, 0.0f, 0.0f };
-	DirectX::XMFLOAT4 ambientColor = DirectX::XMFLOAT4(0.1f, 0.1f, 0.25f, 1.0f);
+	DirectX::XMFLOAT4 ambientColor = DirectX::XMFLOAT4(0.345f, 0.2f, 0.368f, 1.0f);
 
 	// Mesh storage vector
 	std::vector<std::shared_ptr<Mesh>> meshes;
@@ -72,5 +73,8 @@ private:
 	// Light struct
 	Light sceneLights[5];
 	//Light directionalLight1;
+
+	// Sky
+	std::shared_ptr<Sky> sky;
 };
 

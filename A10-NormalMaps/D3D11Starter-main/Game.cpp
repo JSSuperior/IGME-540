@@ -191,14 +191,12 @@ void Game::CreateGeometry()
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockTexture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockNormal;
 
-
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/WoodColor.png").c_str(), 0, woodTexture.GetAddressOf());
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/SteelColor.png").c_str(), 0, steelTexture.GetAddressOf());
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/flat_normals.png").c_str(), 0, genericNormal.GetAddressOf());
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock.png").c_str(), 0, rockTexture.GetAddressOf());
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock_normals.png").c_str(), 0, rockNormal.GetAddressOf());
-
-
+	
 	// Creating materials
 	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
 	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderUV);
@@ -207,7 +205,6 @@ void Game::CreateGeometry()
 	std::shared_ptr<Material> material5 = std::make_shared<Material>(DirectX::XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f), vertexShader, pixelShaderDefault);
 	std::shared_ptr<Material> material6 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCombo);
 	std::shared_ptr<Material> rockMaterial = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
-
 
 	// Adding textures and samplers
 	material1->AddSampler(0,samplerState);
@@ -289,6 +286,24 @@ void Game::CreateGeometry()
 	gameEntities[7]->GetTransform()->MoveAbsolute(12, 0, 0);
 	gameEntities[8]->GetTransform()->MoveAbsolute(15, 0, 0);
 	gameEntities[9]->GetTransform()->MoveAbsolute(18, 0, 0);
+
+	// SKYBOX STUFF
+	// Loading skybox shaders
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> skyboxVertexShader = LoadVertexShader(L"SkyboxVS.cso");
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> skyboxPixelShader = LoadPixelShader(L"SkyboxPS.cso");
+
+	// Creating skybox
+	sky = make_shared<Sky>(
+		samplerState, 
+		skyboxPixelShader, 
+		skyboxVertexShader, 
+		cube,
+		FixPath(L"../../Assets/Textures/Sky/right.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/left.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/up.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/down.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/front.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/back.png").c_str());
 }	
 
 
@@ -613,6 +628,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		gameEntity->GetMaterial()->BindTexturesAndSamplers();
 		gameEntity->Draw();
 	}
+
+	sky->Draw(cameras[activeCameraNum]);
 
 	// DRAW ImGui UI
 	{
