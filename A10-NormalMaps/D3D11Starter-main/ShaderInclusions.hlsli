@@ -56,6 +56,7 @@ struct VertexToPixel
     float2 uv : TEXTCOORD;
     float3 normal : NORMAL;
     float3 worldPosition : POSITION;
+    float3 tangent : TANGENT;
     //float3 tangent : TANGENT;
 };
 
@@ -89,6 +90,9 @@ float4 directionalLight(float4 _surfaceColor, float3 _normal, Light _light, floa
     float3 diffuseTerm = calcDiffuseTerm(_normal, -normalize(_light.Direction));
     float3 specularTerm = calcSpecularTerm(_normal, -normalize(_light.Direction), _cameraPosition, _worldPosition);
     
+    // Cutting specular if diffuse contribution is 0
+    specularTerm *= any(diffuseTerm);
+    
     // Add terms together and multiply by light settings + surface color
     return ((diffuseTerm * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity).xyzz;
 };
@@ -100,6 +104,9 @@ float4 pointLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _ca
     float attenuation = calcAttenuation(_light, _worldPosition);
     float3 diffuseTerm = calcDiffuseTerm(_normal, (_light.Position - _worldPosition));
     float3 specularTerm = calcSpecularTerm(_normal, (_light.Position - _worldPosition), _cameraPosition, _worldPosition);
+    
+    // Cutting specular if diffuse contribution is 0
+    specularTerm *= any(diffuseTerm);
     
     // Add terms together and multiply by light settings + surface color + attenuation
     return ((diffuseTerm * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity * attenuation).xyzz;

@@ -13,6 +13,7 @@ cbuffer DataFromCPU : register(b0)
 }
 
 Texture2D SurfaceTexture : register(t0);
+Texture2D NormalTexture : register(t1);
 SamplerState BasicSampler : register(s0);
 
 // --------------------------------------------------------
@@ -26,11 +27,26 @@ SamplerState BasicSampler : register(s0);
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-    // normalizing input normals
+    // normalizing input normals/tangents
     input.normal = normalize(input.normal);
+    input.tangent = normalize(input.tangent);
     
-    // Sampling texture and applying ambient light
-    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint * ambientColor;
+    // Unpacking normal
+    float3 unpackedNormal = normalize(NormalTexture.Sample(BasicSampler, (input.uv * scale + offset)).rgb * 2.0f - 1.0f);
+    
+    // Creating matrix
+    float3 N = normalize(input.normal);
+    float3 T = normalize(input.tangent - dot(input.tangent, N) * N);
+    float3 B = cross(T, N);
+    float3x3 TBN = float3x3(T, B, N);
+    
+    input.normal = mul(unpackedNormal, TBN);
+    
+    // Sampling texture
+    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, (input.uv * scale + offset));
+    
+    // applying ambient light and color tint to surface color
+    surfaceColor = surfaceColor * colorTint * ambientColor;
     
     // Adding together all lights in the scene
     // need to make sure to update this value when changed elsewhere

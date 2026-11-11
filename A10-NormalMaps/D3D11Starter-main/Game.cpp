@@ -187,9 +187,17 @@ void Game::CreateGeometry()
 	// Loading textures
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodTexture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> steelTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> genericNormal;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockNormal;
+
 
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/WoodColor.png").c_str(), 0, woodTexture.GetAddressOf());
 	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/SteelColor.png").c_str(), 0, steelTexture.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/flat_normals.png").c_str(), 0, genericNormal.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock.png").c_str(), 0, rockTexture.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock_normals.png").c_str(), 0, rockNormal.GetAddressOf());
+
 
 	// Creating materials
 	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
@@ -198,10 +206,13 @@ void Game::CreateGeometry()
 	std::shared_ptr<Material> material4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCustom);
 	std::shared_ptr<Material> material5 = std::make_shared<Material>(DirectX::XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f), vertexShader, pixelShaderDefault);
 	std::shared_ptr<Material> material6 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCombo);
+	std::shared_ptr<Material> rockMaterial = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+
 
 	// Adding textures and samplers
 	material1->AddSampler(0,samplerState);
 	material1->AddTextureSRV(0,woodTexture);
+	material1->AddTextureSRV(1, genericNormal);
 	//material2->AddSampler(0, samplerState);
 	//material2->AddTextureSRV(0, woodTexture);
 	//material3->AddSampler(0, samplerState);
@@ -210,6 +221,11 @@ void Game::CreateGeometry()
 	//material4->AddTextureSRV(0, steelTexture);
 	material5->AddSampler(0, samplerState);
 	material5->AddTextureSRV(0, steelTexture);
+	material5->AddTextureSRV(1, genericNormal);
+
+	rockMaterial->AddSampler(0, samplerState);
+	rockMaterial->AddTextureSRV(0, rockTexture);
+	rockMaterial->AddTextureSRV(1, rockNormal);
 
 	// Custom combo shader
 	material6->AddSampler(0, samplerState);
@@ -251,9 +267,9 @@ void Game::CreateGeometry()
 	//gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
 	// 
 	// adding game entities
-	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(cube, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(sphere, rockMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, rockMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, rockMaterial));
 	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
 	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
 	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material1));
@@ -337,6 +353,10 @@ void Game::Update(float deltaTime, float totalTime)
 	//gameEntities[0]->GetTransform()->SetPosition(sinf(totalTime), 0, 0);
 	//gameEntities[1]->GetTransform()->SetRotation(0, 0, totalTime);
 	//gameEntities[2]->GetTransform()->SetScale(sinf(totalTime),sinf(totalTime),0);
+
+	for (std::shared_ptr<GameEntity> gameEntity : gameEntities) {
+		gameEntity->GetTransform()->SetRotation(0, totalTime, 0);
+	}
 
 	cameras[activeCameraNum]->Update(deltaTime);
 
