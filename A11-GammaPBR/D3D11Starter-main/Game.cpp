@@ -168,10 +168,10 @@ void Game::CreateGeometry()
 
 	// Loading pixel shaders
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderDefault = LoadPixelShader(L"PixelShader.cso");
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderUV = LoadPixelShader(L"DebugUVsPS.cso");
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal = LoadPixelShader(L"DebugNormalsPS.cso");
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom = LoadPixelShader(L"CustomPS.cso");
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCombo = LoadPixelShader(L"TextureComboPS.cso");
+	//Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderUV = LoadPixelShader(L"DebugUVsPS.cso");
+	//Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal = LoadPixelShader(L"DebugNormalsPS.cso");
+	//Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom = LoadPixelShader(L"CustomPS.cso");
+	//Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCombo = LoadPixelShader(L"TextureComboPS.cso");
 
 	//Creating Sampler
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
@@ -185,53 +185,80 @@ void Game::CreateGeometry()
 	Graphics::Device->CreateSamplerState(&sDesc, samplerState.GetAddressOf());
 
 	// Loading textures
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> steelTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> genericNormal;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rockNormal;
+	// Could do this all in one line to be efficient, breaking it up for self visual clarity
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodAlbedo, woodNormal, woodRoughness, woodMetal;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleAlbedo, cobbleNormal, cobbleRoughness, cobbleMetal;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bronzeAlbedo, bronzeNormal, bronzeRoughness, bronzeMetal;
 
-	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/WoodColor.png").c_str(), 0, woodTexture.GetAddressOf());
-	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/SteelColor.png").c_str(), 0, steelTexture.GetAddressOf());
-	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/flat_normals.png").c_str(), 0, genericNormal.GetAddressOf());
-	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock.png").c_str(), 0, rockTexture.GetAddressOf());
-	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/rock_normals.png").c_str(), 0, rockNormal.GetAddressOf());
+	// Loading wood PBR textures
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/wood_albedo.png").c_str(), 0, woodAlbedo.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/wood_normals.png").c_str(), 0, woodNormal.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/wood_roughness.png").c_str(), 0, woodRoughness.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/wood_metal.png").c_str(), 0, woodMetal.GetAddressOf());
+
+	// Loading cobblestone PBR textures
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/cobblestone_albedo.png").c_str(), 0, cobbleAlbedo.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/cobblestone_normals.png").c_str(), 0, cobbleNormal.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/cobblestone_roughness.png").c_str(), 0, cobbleRoughness.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/cobblestone_metal.png").c_str(), 0, cobbleMetal.GetAddressOf());
 	
+	// Loading bronze PBR textures
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/bronze_albedo.png").c_str(), 0, bronzeAlbedo.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/bronze_normals.png").c_str(), 0, bronzeNormal.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/bronze_roughness.png").c_str(), 0, bronzeRoughness.GetAddressOf());
+	DirectX::CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Textures/bronze_metal.png").c_str(), 0, bronzeMetal.GetAddressOf());
+
 	// Creating materials
-	std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
-	std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderUV);
-	std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderNormal);
-	std::shared_ptr<Material> material4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCustom);
-	std::shared_ptr<Material> material5 = std::make_shared<Material>(DirectX::XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f), vertexShader, pixelShaderDefault);
-	std::shared_ptr<Material> material6 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCombo);
-	std::shared_ptr<Material> rockMaterial = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+	std::shared_ptr<Material> woodMaterial = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+	std::shared_ptr<Material> cobblestoneMaterial = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+	std::shared_ptr<Material> bronzeMaterial = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+	//std::shared_ptr<Material> material1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
+	//std::shared_ptr<Material> material2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderUV);
+	//std::shared_ptr<Material> material3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderNormal);
+	//std::shared_ptr<Material> material4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCustom);
+	//std::shared_ptr<Material> material5 = std::make_shared<Material>(DirectX::XMFLOAT4(0.5f, 1.0f, 0.5f, 1.0f), vertexShader, pixelShaderDefault);
+	//std::shared_ptr<Material> material6 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderCombo);
+	//std::shared_ptr<Material> rockMaterial = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShaderDefault);
 
 	// Adding textures and samplers
-	material1->AddSampler(0,samplerState);
-	material1->AddTextureSRV(0,woodTexture);
-	material1->AddTextureSRV(1, genericNormal);
+	woodMaterial->AddSampler(0, samplerState);
+	woodMaterial->AddTextureSRV(0, woodAlbedo);
+	woodMaterial->AddTextureSRV(1, woodNormal);
+	woodMaterial->AddTextureSRV(2, woodRoughness);
+	woodMaterial->AddTextureSRV(3, woodMetal);
+
+	cobblestoneMaterial->AddSampler(0, samplerState);
+	cobblestoneMaterial->AddTextureSRV(0, cobbleAlbedo);
+	cobblestoneMaterial->AddTextureSRV(1, cobbleNormal);
+	cobblestoneMaterial->AddTextureSRV(2, cobbleRoughness);
+	cobblestoneMaterial->AddTextureSRV(3, cobbleMetal);
+
+	bronzeMaterial->AddSampler(0, samplerState);
+	bronzeMaterial->AddTextureSRV(0, bronzeAlbedo);
+	bronzeMaterial->AddTextureSRV(1, bronzeNormal);
+	bronzeMaterial->AddTextureSRV(2, bronzeRoughness);
+	bronzeMaterial->AddTextureSRV(3, bronzeMetal);
+
+	//material1->AddSampler(0,samplerState);
+	//material1->AddTextureSRV(0,woodTexture);
+	//material1->AddTextureSRV(1, genericNormal);
 	//material2->AddSampler(0, samplerState);
 	//material2->AddTextureSRV(0, woodTexture);
 	//material3->AddSampler(0, samplerState);
 	//material3->AddTextureSRV(0, steelTexture);
 	//material4->AddSampler(0, samplerState);
 	//material4->AddTextureSRV(0, steelTexture);
-	material5->AddSampler(0, samplerState);
-	material5->AddTextureSRV(0, steelTexture);
-	material5->AddTextureSRV(1, genericNormal);
+	//material5->AddSampler(0, samplerState);
+	//material5->AddTextureSRV(0, steelTexture);
+	//material5->AddTextureSRV(1, genericNormal);
 
-	rockMaterial->AddSampler(0, samplerState);
-	rockMaterial->AddTextureSRV(0, rockTexture);
-	rockMaterial->AddTextureSRV(1, rockNormal);
-
-	// Custom combo shader
-	material6->AddSampler(0, samplerState);
-	material6->AddTextureSRV(0, woodTexture);
-	material6->AddTextureSRV(1, steelTexture);
+	//rockMaterial->AddSampler(0, samplerState);
+	//rockMaterial->AddTextureSRV(0, rockTexture);
+	//rockMaterial->AddTextureSRV(1, rockNormal);
 
 	// Adjusting scale and offset for testing
-	material5->SetScale(4.0f,4.0f);
-	material5->SetOffset(0.5f,0.5f);
+	//material5->SetScale(4.0f,4.0f);
+	//material5->SetOffset(0.5f,0.5f);
 
 	// Create meshes from obj files
 	std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>("sphere", FixPath("../../Assets/Meshes/sphere.obj").c_str());
@@ -264,16 +291,16 @@ void Game::CreateGeometry()
 	//gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
 	// 
 	// adding game entities
-	gameEntities.push_back(std::make_shared<GameEntity>(sphere, rockMaterial));
-	gameEntities.push_back(std::make_shared<GameEntity>(cube, rockMaterial));
-	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, rockMaterial));
-	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(torus, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(helix, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(cube, material1));
-	gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
+	gameEntities.push_back(std::make_shared<GameEntity>(sphere, cobblestoneMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, cobblestoneMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(cylinder, cobblestoneMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(helix, woodMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad, woodMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(quad_double_sided, woodMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(torus, bronzeMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(helix, bronzeMaterial));
+	gameEntities.push_back(std::make_shared<GameEntity>(cube, bronzeMaterial));
+	//gameEntities.push_back(std::make_shared<GameEntity>(sphere, material1));
 
 	// Spreading out game entities to see
 	gameEntities[0]->GetTransform()->MoveAbsolute(-9, 0, 0);
@@ -285,7 +312,7 @@ void Game::CreateGeometry()
 	gameEntities[6]->GetTransform()->MoveAbsolute(9, 0, 0);
 	gameEntities[7]->GetTransform()->MoveAbsolute(12, 0, 0);
 	gameEntities[8]->GetTransform()->MoveAbsolute(15, 0, 0);
-	gameEntities[9]->GetTransform()->MoveAbsolute(18, 0, 0);
+	//gameEntities[9]->GetTransform()->MoveAbsolute(18, 0, 0);
 
 	// SKYBOX STUFF
 	// Loading skybox shaders
