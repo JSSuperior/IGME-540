@@ -12,8 +12,13 @@ cbuffer DataFromCPU : register(b0)
     float3 cameraPos;
 }
 
-Texture2D SurfaceTexture : register(t0);
-Texture2D NormalTexture : register(t1);
+// PBR textures
+Texture2D albedo : register(t0);
+Texture2D NormalMap : register(t1);
+Texture2D RoughnessMap : register(t2);
+Texture2D MetalnessMap : register(t3);
+
+// Sampler states
 SamplerState BasicSampler : register(s0);
 
 // --------------------------------------------------------
@@ -32,7 +37,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     input.tangent = normalize(input.tangent);
     
     // Unpacking normal
-    float3 unpackedNormal = normalize(NormalTexture.Sample(BasicSampler, (input.uv * scale + offset)).rgb * 2.0f - 1.0f);
+    float3 unpackedNormal = normalize(NormalMap.Sample(BasicSampler, (input.uv * scale + offset)).rgb * 2.0f - 1.0f);
     
     // Creating matrix
     float3 N = normalize(input.normal);
@@ -43,7 +48,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     input.normal = mul(unpackedNormal, TBN);
     
     // Sampling texture
-    float4 surfaceColor = SurfaceTexture.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint;
+    float4 surfaceColor = albedo.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint;
     float4 gammaAdjustedSurfaceColor = pow(surfaceColor, 2.2f);
     
     // applying ambient light and color tint to surface color
