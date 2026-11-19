@@ -66,8 +66,9 @@ float4 main(VertexToPixel input) : SV_TARGET
     float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), surfaceColor.rgb, metalness);
     
     // applying ambient light and color tint to surface color
-    float4 totalLight = surfaceColor * (ambientColor * (1 - metalness));
-    
+    //float4 totalLight = surfaceColor * (ambientColor * (1 - metalness));
+    float4 totalLight = 0;
+   
     // Adding together all lights in the scene
     // need to make sure to update this value when changed elsewhere
     for (int i = 0; i < 5; i++)
@@ -91,6 +92,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     float4 gammaAdjustedColor = pow(totalLight, (1.0f / 2.2f));
     return float4(gammaAdjustedColor.xyz, 1);
+    //return float4(totalLight.xyz, 1);
     
     //return surfaceColor
     //return specularColor.xyzz;
