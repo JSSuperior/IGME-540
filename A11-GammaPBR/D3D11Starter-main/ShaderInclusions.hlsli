@@ -61,6 +61,59 @@ struct VertexToPixel
 };
 
 // Helper functions
+
+// Normal Distribution Function, Trowbridge-Reitz
+float D_GGX(float3 n, float3 h, float roughness)
+{
+    // Constant values
+    const float PI = 3.14159f;
+    const float MINIMUM_ROUGHNESS = 0.0000001f;
+    
+    // Precalculated values to be plugged in
+    float NdotH = saturate(dot(n, h));
+    float NdotH2 = NdotH * NdotH;
+    float a = roughness * roughness;
+    float a2 = max(a * a, MINIMUM_ROUGHNESS);
+    
+    float denomToSquare = NdotH2 * (a2 - 1) + 1;
+    return a2 / (PI * denomToSquare * denomToSquare);
+};
+
+// Fresnel Function, Schlick's Approximation
+float3 F_Schlick(float3 v, float3 h, float3 f0)
+{
+    float vdotH = saturate(dot(v, h));
+    return f0 + (1 - f0) * pow(1 - vdotH, 5);
+};
+
+// Geometric Shadowing, Schlick-GGX
+float G_SchlickGGX(float3 n, float3 v, float roughness)
+{
+    float k = pow(roughness + 1, 2) / 8.0f;
+    float NdotV = saturate(dot(n, v));
+    return 1 / (NdotV * (1 - k) + k);
+};
+
+// Full PBR calculation
+float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float3 f0)
+{
+    float3 h = normalize(v + l);
+    
+    // Performing all 3 parts of BRDF
+    float D = D_GGX(n, h, roughness);
+    float3 F = F_Schlick(v, h, f0);
+    float G = G_SchlickGGX(n, v, roughness) * G_SchlickGGX(n, l, roughness);
+    
+    // Combining them together in the final formula
+    return (D * F * G) / 4;
+};
+
+// Energy Conservation calculation
+float3 DiffuseEnergyConserve(float3 diffuse, float3 F, float metalness)
+{
+    return diffuse * (1 - F) * (1 - metalness);
+}
+
 //Attenuate
 float calcAttenuation(Light _light, float3 _worldPosition)
 {
@@ -72,48 +125,58 @@ float calcAttenuation(Light _light, float3 _worldPosition)
 // Difuse term
 float3 calcDiffuseTerm(float3 _normal, float3 _directionToLight)
 {
-    return saturate(dot(_normal, normalize(_directionToLight)));
+    return saturate(dot(_normal, _directionToLight));
 };
 
 // Specular term
-float3 calcSpecularTerm(float3 _normal, float3 _directionToLight, float3 _cameraPosition, float3 _worldPosition)
-{
-    float3 refl = reflect(normalize(-_directionToLight), _normal);
-    float RdotV = saturate(dot(refl, normalize(_cameraPosition - _worldPosition)));
-    return pow(RdotV, 128);
-};
+//float3 calcSpecularTerm(float3 _normal, float3 _directionToLight, float3 _cameraPosition, float3 _worldPosition)
+//{
+//    float3 refl = reflect(normalize(-_directionToLight), _normal);
+//    float RdotV = saturate(dot(refl, normalize(_cameraPosition - _worldPosition)));
+//    return pow(RdotV, 128);
+//};
 
 // Directional light calculation
-float4 directionalLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
+float4 directionalLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition, float _roughness, float3 _specularColor, float _metalness)
 {
-    // Calculate diffuse term and specular term
-    float3 diffuseTerm = calcDiffuseTerm(_normal, -normalize(_light.Direction));
-    float3 specularTerm = calcSpecularTerm(_normal, -normalize(_light.Direction), _cameraPosition, _worldPosition);
+    float3 directionToLight = -normalize(_light.Direction);
+    float3 directionToCamera = normalize(_cameraPosition - _worldPosition);
     
-    // Cutting specular if diffuse contribution is 0
-    specularTerm *= any(diffuseTerm);
+    // Calculate diffuse term and specular term
+    float3 diffuseTerm = calcDiffuseTerm(_normal, directionToLight);
+    //float3 specularTerm = calcSpecularTerm(_normal, -normalize(_light.Direction), _cameraPosition, _worldPosition);
+    float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, _specularColor);
+    
+    // Calculating diffuse with energy conservation
+    float3 F = F_Schlick(_cameraPosition, normalize(directionToLight + directionToCamera), _specularColor);
+    float3 balancedDiff = DiffuseEnergyConserve(diffuseTerm, F, _metalness);
     
     // Add terms together and multiply by light settings + surface color
-    return ((diffuseTerm * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity).xyzz;
+    return ((balancedDiff * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity).xyzz;
 };
 
 // Point light calculation
-float4 pointLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
+float4 pointLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition, float _roughness, float3 _specularColor, float _metalness)
 {
+    float3 directionToLight = (_light.Position - _worldPosition);
+    float3 directionToCamera = normalize(_cameraPosition - _worldPosition);
+    
     // Calculate attenation, diffuse term and specular term
     float attenuation = calcAttenuation(_light, _worldPosition);
-    float3 diffuseTerm = calcDiffuseTerm(_normal, (_light.Position - _worldPosition));
-    float3 specularTerm = calcSpecularTerm(_normal, (_light.Position - _worldPosition), _cameraPosition, _worldPosition);
+    float3 diffuseTerm = calcDiffuseTerm(_normal, directionToLight);
+    //float3 specularTerm = calcSpecularTerm(_normal, (_light.Position - _worldPosition), _cameraPosition, _worldPosition);
+    float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, _specularColor);
     
-    // Cutting specular if diffuse contribution is 0
-    specularTerm *= any(diffuseTerm);
+    // Calculating diffuse with energy conservation
+    float3 F = F_Schlick(_cameraPosition, normalize(directionToLight + directionToCamera), _specularColor);
+    float3 balancedDiff = DiffuseEnergyConserve(diffuseTerm, F, _metalness);
     
     // Add terms together and multiply by light settings + surface color + attenuation
-    return ((diffuseTerm * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity * attenuation).xyzz;
+    return ((balancedDiff * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity * attenuation).xyzz;
 };
 
 // Spot light calculation
-float4 spotLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition)
+float4 spotLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cameraPosition, float3 _worldPosition, float _roughness, float3 _specularColor, float _metalness)
 {
     // Calculate cos angle between pixel and light direction
     float pixelAngle = saturate(dot(-normalize(_light.Position - _worldPosition), normalize(_light.Direction)));
@@ -125,6 +188,6 @@ float4 spotLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _cam
     
     // Calculate/Apply linear fall off to light
     float spotTerm = saturate((cosOuter - pixelAngle) / falloffRange);
-    return pointLight(_surfaceColor, _normal, _light, _cameraPosition, _worldPosition) * spotTerm;
+    return pointLight(_surfaceColor, _normal, _light, _cameraPosition, _worldPosition, _roughness, _specularColor, _metalness) * spotTerm;
 }
 #endif

@@ -36,7 +36,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     input.normal = normalize(input.normal);
     input.tangent = normalize(input.tangent);
     
-    // Unpacking normal
+    // Unpacking/sampling normal
     float3 unpackedNormal = normalize(NormalMap.Sample(BasicSampler, (input.uv * scale + offset)).rgb * 2.0f - 1.0f);
     
     // Creating matrix
@@ -47,12 +47,21 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     input.normal = mul(unpackedNormal, TBN);
     
-    // Sampling texture
+    // Sampling albedo
     float4 surfaceColor = albedo.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint;
-    float4 gammaAdjustedSurfaceColor = pow(surfaceColor, 2.2f);
+    surfaceColor.rgb = pow(surfaceColor.rgb, 2.2f);
+    
+    // Sampling roughness
+    float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
+    
+    // Sampling metalness
+    float metalness = MetalnessMap.Sample(BasicSampler, input.uv).r;
+    
+    // Specular color calculation
+    float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), surfaceColor.rgb, metalness);
     
     // applying ambient light and color tint to surface color
-    float4 totalLight = gammaAdjustedSurfaceColor * ambientColor;
+    float4 totalLight = surfaceColor * (ambientColor * (1 - metalness));
     
     // Adding together all lights in the scene
     // need to make sure to update this value when changed elsewhere
@@ -61,13 +70,13 @@ float4 main(VertexToPixel input) : SV_TARGET
         switch (lights[i].Type)
         {
             case LIGHT_TYPE_DIRECTIONAL:
-                totalLight += directionalLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition);
+                totalLight += directionalLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
                 break;
             case LIGHT_TYPE_POINT:
-                totalLight += pointLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition);
+                totalLight += pointLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
                 break;
             case LIGHT_TYPE_SPOT:
-                totalLight += spotLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition);
+                totalLight += spotLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
                 break;
         }
         
@@ -75,6 +84,8 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     // Return final surface color with all applied lights
     
-    float4 gammaAdjustedColor = pow(totalLight, 1.0f / 2.2f);
-    return gammaAdjustedColor;
+    float4 gammaAdjustedColor = pow(totalLight, (1.0f / 2.2f));
+    return float4(gammaAdjustedColor.xyz, 1);
+    //return specularColor.xyzz;
+    //return metalness;
 }
