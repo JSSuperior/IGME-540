@@ -71,26 +71,26 @@ Game::Game()
 	directionalLight1.Type = LIGHT_TYPE_DIRECTIONAL;
 	directionalLight1.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 	directionalLight1.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-	directionalLight1.Intensity = 0.5f;
+	directionalLight1.Intensity = 3.0f;
 
 	Light directionalLight2 = {};
 	directionalLight2.Type = LIGHT_TYPE_DIRECTIONAL;
 	directionalLight2.Direction = DirectX::XMFLOAT3(-1.0f, 0.0f, 0.0f);
-	directionalLight2.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+	directionalLight2.Color = DirectX::XMFLOAT3(1.0f, 0.2f, 0.2f);
 	directionalLight2.Intensity = 0.5f;
 
 	Light pointLight1 = {};
 	pointLight1.Type = LIGHT_TYPE_POINT;
 	pointLight1.Position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
 	pointLight1.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-	pointLight1.Intensity = 0.0f;
+	pointLight1.Intensity = 1.0f;
 	pointLight1.Range = 10.0f;
 
 	Light pointLight2 = {};
 	pointLight2.Type = LIGHT_TYPE_POINT;
 	pointLight2.Position = DirectX::XMFLOAT3(9.0f, 1.0f, 0.0f);
 	pointLight2.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-	pointLight2.Intensity = 0.0f;
+	pointLight2.Intensity = 1.0f;
 	pointLight2.Range = 1.0f;
 
 	Light spotLight1 = {};
@@ -99,8 +99,8 @@ Game::Game()
 	spotLight1.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 	spotLight1.SpotInnerAngle = DirectX::XMConvertToRadians(20.0f);
 	spotLight1.SpotOuterAngle = DirectX::XMConvertToRadians(30.0f);
-	spotLight1.Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-	spotLight1.Intensity = 0.0f;
+	spotLight1.Color = DirectX::XMFLOAT3(0.2f, 1.0f, 0.2f);
+	spotLight1.Intensity = 1.0f;
 	spotLight1.Range = 10.0f;
 
 	sceneLights[0] = directionalLight1;

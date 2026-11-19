@@ -144,15 +144,14 @@ float4 directionalLight(float4 _surfaceColor, float3 _normal, Light _light, floa
     
     // Calculate diffuse term and specular term
     float3 diffuseTerm = calcDiffuseTerm(_normal, directionToLight);
-    //float3 specularTerm = calcSpecularTerm(_normal, -normalize(_light.Direction), _cameraPosition, _worldPosition);
     float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, _specularColor);
     
     // Calculating diffuse with energy conservation
-    float3 F = F_Schlick(_cameraPosition, normalize(directionToLight + directionToCamera), _specularColor);
+    float3 F = F_Schlick(directionToCamera, normalize(directionToLight + directionToCamera), _specularColor);
     float3 balancedDiff = DiffuseEnergyConserve(diffuseTerm, F, _metalness);
     
     // Add terms together and multiply by light settings + surface color
-    return ((balancedDiff * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity).xyzz;
+    return float4((balancedDiff * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity, 1);
 };
 
 // Point light calculation
@@ -164,15 +163,14 @@ float4 pointLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _ca
     // Calculate attenation, diffuse term and specular term
     float attenuation = calcAttenuation(_light, _worldPosition);
     float3 diffuseTerm = calcDiffuseTerm(_normal, directionToLight);
-    //float3 specularTerm = calcSpecularTerm(_normal, (_light.Position - _worldPosition), _cameraPosition, _worldPosition);
     float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, _specularColor);
     
     // Calculating diffuse with energy conservation
-    float3 F = F_Schlick(_cameraPosition, normalize(directionToLight + directionToCamera), _specularColor);
+    float3 F = F_Schlick(directionToCamera, normalize(directionToLight + directionToCamera), _specularColor);
     float3 balancedDiff = DiffuseEnergyConserve(diffuseTerm, F, _metalness);
     
     // Add terms together and multiply by light settings + surface color + attenuation
-    return ((balancedDiff * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity * attenuation).xyzz;
+    return float4((balancedDiff * _surfaceColor.xyz + specularTerm) * _light.Color * _light.Intensity * attenuation, 1);
 };
 
 // Spot light calculation

@@ -45,11 +45,16 @@ float4 main(VertexToPixel input) : SV_TARGET
     float3 B = cross(T, N);
     float3x3 TBN = float3x3(T, B, N);
     
-    input.normal = mul(unpackedNormal, TBN);
+    input.normal = normalize(mul(unpackedNormal, TBN));
     
     // Sampling albedo
-    float4 surfaceColor = albedo.Sample(BasicSampler, (input.uv * scale + offset)) * colorTint;
+    float4 surfaceColor = albedo.Sample(BasicSampler, (input.uv * scale + offset));
+    
+    //gamma corecting (maybe want to color tint after this?)
     surfaceColor.rgb = pow(surfaceColor.rgb, 2.2f);
+    
+    // applying color tint
+    surfaceColor * colorTint;
     
     // Sampling roughness
     float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
@@ -86,6 +91,8 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     float4 gammaAdjustedColor = pow(totalLight, (1.0f / 2.2f));
     return float4(gammaAdjustedColor.xyz, 1);
+    
+    //return surfaceColor
     //return specularColor.xyzz;
     //return metalness;
 }
