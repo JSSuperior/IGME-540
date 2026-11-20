@@ -54,7 +54,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     surfaceColor.rgb = pow(surfaceColor.rgb, 2.2f);
     
     // applying color tint
-    surfaceColor * colorTint;
+    surfaceColor *= colorTint;
     
     // Sampling roughness
     float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
@@ -76,13 +76,13 @@ float4 main(VertexToPixel input) : SV_TARGET
         switch (lights[i].Type)
         {
             case LIGHT_TYPE_DIRECTIONAL:
-                totalLight += directionalLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
+                totalLight += directionalLight(surfaceColor, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
                 break;
             case LIGHT_TYPE_POINT:
-                totalLight += pointLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
+                totalLight += pointLight(surfaceColor, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
                 break;
             case LIGHT_TYPE_SPOT:
-                totalLight += spotLight(totalLight, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
+                totalLight += spotLight(surfaceColor, input.normal, lights[i], cameraPos, input.worldPosition, roughness, specularColor, metalness);
                 break;
         }
         
