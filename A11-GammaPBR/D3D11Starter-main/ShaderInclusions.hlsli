@@ -95,13 +95,13 @@ float G_SchlickGGX(float3 n, float3 v, float roughness)
 };
 
 // Full PBR calculation
-float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float3 f0)
+float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float3 fschlick)
 {
     float3 h = normalize(v + l);
     
     // Performing all 3 parts of BRDF
     float D = D_GGX(n, h, roughness);
-    float3 F = F_Schlick(v, h, f0);
+    float3 F = fschlick;
     float G = G_SchlickGGX(n, v, roughness) * G_SchlickGGX(n, l, roughness);
     
     // Combining them together in the final formula
@@ -143,13 +143,14 @@ float4 directionalLight(float4 _surfaceColor, float3 _normal, Light _light, floa
     float3 directionToCamera = normalize(_cameraPosition - _worldPosition);
     
     // Calculate diffuse term and specular term
+    float3 F = F_Schlick(directionToCamera, normalize(directionToLight + directionToCamera), _specularColor);
     float3 diffuseTerm = calcDiffuseTerm(_normal, directionToLight);
-    float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, _specularColor);
+    float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, F);
     
     specularTerm *= saturate(dot(_normal, directionToLight));
     
     // Calculating diffuse with energy conservation
-    float3 F = F_Schlick(directionToCamera, normalize(directionToLight + directionToCamera), _specularColor);
+    
     float3 balancedDiff = DiffuseEnergyConserve(diffuseTerm, F, _metalness);
     
     // Add terms together and multiply by light settings + surface color
@@ -163,14 +164,14 @@ float4 pointLight(float4 _surfaceColor, float3 _normal, Light _light, float3 _ca
     float3 directionToCamera = normalize(_cameraPosition - _worldPosition);
     
     // Calculate attenation, diffuse term and specular term
+    float3 F = F_Schlick(directionToCamera, normalize(directionToLight + directionToCamera), _specularColor);
     float attenuation = calcAttenuation(_light, _worldPosition);
     float3 diffuseTerm = calcDiffuseTerm(_normal, directionToLight);
-    float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, _specularColor);
+    float3 specularTerm = MicrofacetBRDF(_normal, directionToLight, directionToCamera, _roughness, F);
     
     specularTerm *= saturate(dot(_normal, directionToLight));
     
     // Calculating diffuse with energy conservation
-    float3 F = F_Schlick(directionToCamera, normalize(directionToLight + directionToCamera), _specularColor);
     float3 balancedDiff = DiffuseEnergyConserve(diffuseTerm, F, _metalness);
     
     // Add terms together and multiply by light settings + surface color + attenuation

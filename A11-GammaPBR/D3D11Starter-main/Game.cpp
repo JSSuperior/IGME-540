@@ -392,10 +392,6 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	Game::ImGuiUpdate(deltaTime);
 
-	//gameEntities[0]->GetTransform()->SetPosition(sinf(totalTime), 0, 0);
-	//gameEntities[1]->GetTransform()->SetRotation(0, 0, totalTime);
-	//gameEntities[2]->GetTransform()->SetScale(sinf(totalTime),sinf(totalTime),0);
-
 	for (std::shared_ptr<GameEntity> gameEntity : gameEntities) {
 		gameEntity->GetTransform()->SetRotation(0, totalTime, 0);
 	}
